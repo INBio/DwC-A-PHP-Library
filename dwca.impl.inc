@@ -6,6 +6,11 @@
  */
 class DwCAFile implements DwCA{
 
+  private $zip_path;
+  private $hash;
+
+  private $core_path;
+
   private $core_filename;
   private $core_config;
   private $core_mappings;
@@ -27,7 +32,7 @@ class DwCAFile implements DwCA{
 
     // library includes
     feeds_include_library('pclzip.lib.php', 'pclzip');   // For open Zip files
-    feeds_include_library('DwCACSVParser.inc', 'dwca'); // For parse CSV files
+    feeds_include_library('ParserCSV.inc', 'feeds'); // For parse CSV files
 
     $this->parser = new ParserCSV();
 
@@ -38,6 +43,8 @@ class DwCAFile implements DwCA{
 
     $this->core_config = Array();
     $this->core_mappings = Array();
+    $this->zip_path = $path;
+    $this->hash = hash_file('md5', $path);
 
     $this->create($path);
   }
@@ -115,31 +122,24 @@ class DwCAFile implements DwCA{
    */
   public function get_metadata(){
 
-    $file = $this->dwca_file->extract(PCLZIP_OPT_BY_NAME, $this->eml_filename);
 
-    if ($file[0]['status'] != 'ok'){
-      print 'Error extracting '.$this->eml_filename;
+    $filename = dirname($this->zip_path)."/".$this->hash."/".$this->eml_filename;
+
+    if(!file_exists($filename)){
+      $file = $this->dwca_file->extract(
+          PCLZIP_OPT_PATH, dirname($this->zip_path)."/".$this->hash,
+          PCLZIP_OPT_BY_NAME, $this->eml_filename);
+
+      if ($file[0]['status'] != 'ok'){
+        print 'Error extracting '.$this->eml_filename;
+      }
     }
 
     // Read the xml by using simplexml library.
-    $xml = simplexml_load_file(drupal_realpath($file[0]['filename']));
+    $xml = simplexml_load_file($filename);
 
 
     // Get the data Organization, data resource name and description.
-    /*
-    $meta_info = Array(
-        'metadata' => TRUE,
-        'data_provider' => Array(
-            'name'         => (string) $xml->dataset->creator->organizationName,
-            'description'  => ''
-            ),
-
-         'data_resource' => Array(
-             'name'        => (string) $xml->dataset->title,
-             'description' => (string) $xml->dataset->abstract->para
-             )
-        );
-        */
     $meta_info = Array(
         'metadata' => TRUE,
         'data_provider_title'         => (string) $xml->dataset->creator->organizationName,
@@ -161,14 +161,22 @@ class DwCAFile implements DwCA{
    */
   public function get_core_info($start = 0, $limit = 10){
 
-    $file = $this->dwca_file->extract(PCLZIP_OPT_BY_NAME, $this->core_filename);
+    $filename = dirname($this->zip_path)."/".$this->hash."/".$this->core_filename;
 
-    if ($file[0]['status'] != 'ok'){
-      print 'Error extracting '.$this->core_filename;
+    if(!file_exists($filename)){
+      $file = $this->dwca_file->extract(
+          PCLZIP_OPT_PATH, dirname($this->zip_path)."/".$this->hash,
+          PCLZIP_OPT_BY_NAME, $this->core_filename);
+
+      if ($file[0]['status'] != 'ok'){
+        print 'Error extracting '.$this->core_filename;
+      }
     }
 
     // parsing occurrence.txt file looking for occurrences
-    $iterator = new ParserCSVIterator($file[0]['filename']);
+    $iterator = new ParserCSVIterator($filename);
+
+    $this->core_path = drupal_realpath($filename);
 
     $rows = $this->_parseItems($this->parser, $iterator, $start, $limit);
 
@@ -199,6 +207,14 @@ class DwCAFile implements DwCA{
     return $this->core_mappings;
   }
 
+  /**
+   * Return path of the core file
+   * @return String
+   *   the path of the file in the filesystem
+   */
+  public function get_core_path(){
+    return $this->core_path;
+  }
 
   /**
    * Return the parser
@@ -226,15 +242,20 @@ class DwCAFile implements DwCA{
 
   private function _config(){
 
-    $file = $this->dwca_file->extract(PCLZIP_OPT_BY_NAME, $this->meta_filename);
+    $filename = dirname($this->zip_path)."/".$this->hash."/".$this->meta_filename;
 
-    if ($file[0]['status'] != 'ok'){
-      print 'Error extracting '.$this->meta_filename;
+    if(!file_exists($filename)){
+      $file = $this->dwca_file->extract(
+          PCLZIP_OPT_PATH, dirname($this->zip_path)."/".$this->hash,
+          PCLZIP_OPT_BY_NAME, $this->meta_filename);
+
+      if ($file[0]['status'] != 'ok'){
+        print 'Error extracting '.$this->meta_filename;
+      }
     }
 
     // Read the xml by using simplexml library.
-    $xml = simplexml_load_file(drupal_realpath($file[0]['filename']));
-
+    $xml = simplexml_load_file($filename);
 
     // Get the eml filename
     $this->eml_filename = (string) $xml->attributes()['metadata'];
