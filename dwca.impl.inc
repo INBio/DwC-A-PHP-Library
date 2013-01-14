@@ -254,28 +254,32 @@ class DwCAFile implements DwCA{
     $xml = simplexml_load_file($filename);
 
     // Get the eml filename
-    $this->eml_filename = (string) $xml->attributes()['metadata'];
+    $attributes = $xml->attributes();
+    $this->eml_filename = (string) $attributes['metadata'];
     // ------
 
     // Get the core filename and configuration
+    $core_attributes = $xml->core->attributes();
     $this->core_config = Array(
-        'encoding'         => (string) $xml->core->attributes()['encoding'],
-        'delimiter'        => stripcslashes( (string) $xml->core->attributes()['fieldsTerminatedBy'] ),
-        'line_delimiter'   => stripcslashes( (string) $xml->core->attributes()['linesTerminatedBy'] ),
-        'fields_enclosed'  => stripcslashes( (string) $xml->core->attributes()['fieldsEnclosedBy'] ),
-        'row_type'         => (string) $xml->core->attributes()['rowType']
+        'encoding'         => (string) $core_attributes['encoding'],
+        'delimiter'        => stripcslashes( (string) $core_attributes['fieldsTerminatedBy'] ),
+        'line_delimiter'   => stripcslashes( (string) $core_attributes['linesTerminatedBy'] ),
+        'fields_enclosed'  => stripcslashes( (string) $core_attributes['fieldsEnclosedBy'] ),
+        'row_type'         => (string) $core_attributes['rowType']
      );
 
     $this->core_filename = (string) $xml->core->files->location;
     // ------
 
     // Get the core mappings and configuration
+    $core_id_attributes = $xml->core->id->attributes();
 
-    $this->core_mappings[ (string) $xml->core->id->attributes()['index'] ] ='id';
+    $this->core_mappings[ (string) $core_id_attributes['index'] ] ='id';
 
     foreach($xml->core->field as $field ){
-      $index = (string) $field->attributes()['index'];
-      $term = (string) $field->attributes()['term'];
+      $field_attributes = $field->attributes();
+      $index = (string) $field_attributes['index'];
+      $term = (string) $field_attributes['term'];
       $this->core_mappings[$index] = $term;
     }
     // ------
