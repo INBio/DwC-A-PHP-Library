@@ -9,8 +9,6 @@ class DwCAFile implements DwCA{
   private $zip_path;
   private $hash;
 
-  private $core_path;
-
   private $core_filename;
   private $core_config;
   private $core_mappings;
@@ -176,8 +174,6 @@ class DwCAFile implements DwCA{
     // parsing occurrence.txt file looking for occurrences
     $iterator = new ParserCSVIterator($filename);
 
-    $this->core_path = drupal_realpath($filename);
-
     $rows = $this->_parseItems($this->parser, $iterator, $start, $limit);
 
     return $rows;
@@ -213,7 +209,7 @@ class DwCAFile implements DwCA{
    *   the path of the file in the filesystem
    */
   public function get_core_path(){
-    return $this->core_path;
+    return dirname($this->zip_path)."/".$this->hash."/".$this->core_filename;
   }
 
   /**
