@@ -28,7 +28,7 @@ class DwCAFile implements DwCA{
    *   An array or a stdClass object that is a Drupal taxonomy term. Can include
    *   geo extensions.
    */
-  public function __construct($path) {
+  public function __construct() {
 
     // Default settings
     $this->separator = DWCA_DEFAULT_FIELD_SEPARATOR;
