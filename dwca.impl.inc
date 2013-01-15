@@ -1,5 +1,7 @@
 <?php
 
+include 'ParserCSV.inc';
+
 /**
  * Manage a DwC-A (Darwin Core Archive) to extract information from the zip file
  * and return it as arrays (hashes).
@@ -28,23 +30,17 @@ class DwCAFile implements DwCA{
    */
   public function __construct($path) {
 
-    // library includes
-    feeds_include_library('pclzip.lib.php', 'pclzip');   // For open Zip files
-    feeds_include_library('ParserCSV.inc', 'feeds'); // For parse CSV files
-
-    $this->parser = new ParserCSV();
-
     // Default settings
     $this->separator = DWCA_DEFAULT_FIELD_SEPARATOR;
+
     $this->meta_filename = DWCA_META_FILE;
     $this->eml_filename = DWCA_EML_FILE;
 
     $this->core_config = Array();
     $this->core_mappings = Array();
-    $this->zip_path = $path;
-    $this->hash = hash_file('md5', $path);
 
-    $this->create($path);
+    $this->parser = new ParserCSV();
+
   }
 
   /**
@@ -56,61 +52,80 @@ class DwCAFile implements DwCA{
    *  0 if the file exist and in the right format.
    *  1 if error.
    */
-  public function create($path){
+  public function open($path){
 
-    //TODO: validate the right format (a.k.a. create the DwC-A library)
-    $this->dwca_file = new PclZip($path);
+    $this->hash = hash_file('md5', $path);
 
-    // Verify that the file is open
-    if(!$this->dwca_file){
-      print "Error: Failed to open zip file";
+    $dwca_file = new zipArchive();
+    if (! $dwca_file->open($path)){
+      exit( "Error: Failed to open zip file\n" );
     }
 
-    $dwca_file_list = self::list_contents();
-
-    if ( $dwca_file_list < 3){
-      print "Error: This is not a DwC-A formated file";
-      return FALSE;
+    if ( $dwca_file->numFiles < 3){
+      exit( "Error: This is not a DwC-A formated file\n" );
     }
 
-    $meta = FALSE;
+    if( ! $dwca_file->locateName($this->meta_filename)){
+      exit( "Error: This is not a DwC-A formated file: $this->meta_filename mising\n" );
+    }
 
-    foreach ($dwca_file_list as $file){
-      if($file == $this->meta_filename){
-        $meta = TRUE;
+    $this->dwca_file = $dwca_file;
+    $this->zip_path = $path;
+
+    // ------------------------------------------------------------------------------------
+
+    $filename = dirname($this->zip_path)."/".$this->hash."/".$this->meta_filename;
+    $status = TRUE;
+
+    if(!file_exists($filename)){
+      $status = $this->dwca_file->extractTo(
+        dirname($this->zip_path)."/".$this->hash,
+        $this->meta_filename);
+
+      if ( ! $status ){
+        print 'Error extracting '.$this->meta_filename;
       }
     }
 
-    if (!$meta ){
-      print 'Error: This is not a DwC-A formatted file';
-      return FALSE;
+    // Read the xml by using simplexml library.
+    $xml = simplexml_load_file($filename);
+
+    // Get the eml filename
+    $attributes = $xml->attributes();
+    $this->eml_filename = (string) $attributes['metadata'];
+    // ------
+
+    // Get the core filename and configuration
+    $core_attributes = $xml->core->attributes();
+    $this->core_config = Array(
+        'encoding'         => (string) $core_attributes['encoding'],
+        'delimiter'        => stripcslashes( (string) $core_attributes['fieldsTerminatedBy'] ),
+        'line_delimiter'   => stripcslashes( (string) $core_attributes['linesTerminatedBy'] ),
+        'fields_enclosed'  => stripcslashes( (string) $core_attributes['fieldsEnclosedBy'] ),
+        'row_type'         => (string) $core_attributes['rowType']
+     );
+
+    $this->core_filename = (string) $xml->core->files->location;
+    // ------
+
+    // Get the core mappings and configuration
+    $core_id_attributes = $xml->core->id->attributes();
+
+    $this->core_mappings[ (string) $core_id_attributes['index'] ] ='id';
+
+    foreach($xml->core->field as $field ){
+      $field_attributes = $field->attributes();
+      $index = (string) $field_attributes['index'];
+      $term = (string) $field_attributes['term'];
+      $this->core_mappings[$index] = $term;
     }
+    // ------
 
-    $this->_config();
-
+    // Config the parser
+    $this->parser->setDelimiter($this->core_config['delimiter']);
+    $this->parser->setColumnNames(array_values($this->core_mappings));
 
     return TRUE;
-  }
-
-  /**
-   * List the contents of the zip file.
-   * @return
-   *  An array (hash) with the name of the file and the category
-   *  array(
-   *    array( type=> , name=> ),
-   *    array( type=> , name=> ),
-   *    ...);
-   */
-  public function list_contents(){
-
-    $zipfile_list = $this->dwca_file->listContent();
-
-    $files = Array();
-
-    foreach ($zipfile_list as $file ){
-      $files[] = $file['filename'];
-    }
-    return $files;
   }
 
   /**
@@ -122,13 +137,14 @@ class DwCAFile implements DwCA{
 
 
     $filename = dirname($this->zip_path)."/".$this->hash."/".$this->eml_filename;
+    $status = TRUE;
 
     if(!file_exists($filename)){
-      $file = $this->dwca_file->extract(
-          PCLZIP_OPT_PATH, dirname($this->zip_path)."/".$this->hash,
-          PCLZIP_OPT_BY_NAME, $this->eml_filename);
+      $status = $this->dwca_file->extractTo(
+        dirname($this->zip_path)."/".$this->hash,
+        $this->eml_filename);
 
-      if ($file[0]['status'] != 'ok'){
+      if ( ! $status ){
         print 'Error extracting '.$this->eml_filename;
       }
     }
@@ -160,14 +176,15 @@ class DwCAFile implements DwCA{
   public function get_core_info($start = 0, $limit = 10){
 
     $filename = dirname($this->zip_path)."/".$this->hash."/".$this->core_filename;
+    $status = TRUE;
 
     if(!file_exists($filename)){
-      $file = $this->dwca_file->extract(
-          PCLZIP_OPT_PATH, dirname($this->zip_path)."/".$this->hash,
-          PCLZIP_OPT_BY_NAME, $this->core_filename);
+      $status = $this->dwca_file->extractTo(
+        dirname($this->zip_path)."/".$this->hash,
+        $this->core_filename);
 
-      if ($file[0]['status'] != 'ok'){
-        print 'Error extracting '.$this->core_filename;
+      if ( ! $status ){
+        print 'Error extracting '.$this->eml_filename;
       }
     }
 
@@ -221,6 +238,9 @@ class DwCAFile implements DwCA{
     return $this->parser;
   }
 
+  public function create($path){}
+  public function list_contents(){}
+
   /**
    * Parse all of the items from the CSV.
    *
@@ -235,57 +255,18 @@ class DwCAFile implements DwCA{
     $rows = $parser->parse($iterator);
     return $rows;
   }
+}
 
-  private function _config(){
-
-    $filename = dirname($this->zip_path)."/".$this->hash."/".$this->meta_filename;
-
-    if(!file_exists($filename)){
-      $file = $this->dwca_file->extract(
-          PCLZIP_OPT_PATH, dirname($this->zip_path)."/".$this->hash,
-          PCLZIP_OPT_BY_NAME, $this->meta_filename);
-
-      if ($file[0]['status'] != 'ok'){
-        print 'Error extracting '.$this->meta_filename;
-      }
-    }
-
-    // Read the xml by using simplexml library.
-    $xml = simplexml_load_file($filename);
-
-    // Get the eml filename
-    $attributes = $xml->attributes();
-    $this->eml_filename = (string) $attributes['metadata'];
-    // ------
-
-    // Get the core filename and configuration
-    $core_attributes = $xml->core->attributes();
-    $this->core_config = Array(
-        'encoding'         => (string) $core_attributes['encoding'],
-        'delimiter'        => stripcslashes( (string) $core_attributes['fieldsTerminatedBy'] ),
-        'line_delimiter'   => stripcslashes( (string) $core_attributes['linesTerminatedBy'] ),
-        'fields_enclosed'  => stripcslashes( (string) $core_attributes['fieldsEnclosedBy'] ),
-        'row_type'         => (string) $core_attributes['rowType']
-     );
-
-    $this->core_filename = (string) $xml->core->files->location;
-    // ------
-
-    // Get the core mappings and configuration
-    $core_id_attributes = $xml->core->id->attributes();
+function test(){
 
     $this->core_mappings[ (string) $core_id_attributes['index'] ] ='id';
+  $file = new DwCAFile();
 
-    foreach($xml->core->field as $field ){
-      $field_attributes = $field->attributes();
-      $index = (string) $field_attributes['index'];
-      $term = (string) $field_attributes['term'];
-      $this->core_mappings[$index] = $term;
-    }
-    // ------
+  $file->open('dwca-benin.zip');
 
-    // Config the parser
-    $this->parser->setDelimiter($this->core_config['delimiter']);
-    $this->parser->setColumnNames(array_values($this->core_mappings));
-  }
+  var_dump ($file->get_metadata());
+  print "\n\n\n\n";
+  var_dump ($file->get_core_info());
 }
+
+//test();
