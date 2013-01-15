@@ -49,18 +49,7 @@ interface DwCA {
    *  0 if the file exist and in the right format.
    *  1 if error.
    */
-  public function create($path);
-
-  /**
-   * List the contents of the zip file.
-   * @return
-   *  An array (hash) with the name of the file and the category
-   *  array(
-   *    array( type=> , name=> ),
-   *    array( type=> , name=> ),
-   *    ...);
-   */
-  public function list_contents();
+  public function open($path);
 
   /**
    * Return an array with a subset of the metadata contained in the eml.xml file

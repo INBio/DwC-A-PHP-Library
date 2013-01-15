@@ -238,9 +238,6 @@ class DwCAFile implements DwCA{
     return $this->parser;
   }
 
-  public function create($path){}
-  public function list_contents(){}
-
   /**
    * Parse all of the items from the CSV.
    *
