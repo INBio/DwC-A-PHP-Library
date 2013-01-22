@@ -1,0 +1,20 @@
+DwC-A-PHP-Library
+=================
+
+A DwC-A PHP library to work with DwC-A fomated zip files
+
+Use Cases
+==========
+
+---------- Forwarded message ----------
+From: "Markus Döring (GBIF)"
+Date: 2013/1/16
+
+The dwca java library was implemented with indexing in mind, but tries to cover the complete dwca specs with all its options.
+For example that means:
+- check if we have only a single data file with headers and nothing else
+- detect and use meta.xml if it exists
+- detect metadata file by looking into meta.xml, but do also a default test for eml.xml
+- metadata format is not governed by dwca so it could be anything. For GBIF we support EML and DC so far, but in a separate project than the dwca lib
+- be able to deal with any terms, but provide an easy to use enumeration of known dwc and dc terms. Its important that the library can deal with any term and does not need to know them in advance
+- offer a "star record" iterator. This makes using the library very simple, but it gets a bit complex because the library has to "join" the various extension data files to the core. As you cannot put all data into memory without blowing it the data files therefore have to be sorted by the coreid on disk first. You can then open a file reader on each data file and iterate over all files in sync with the core reader. Watch out for non existing core ids in the extension file and skip those rows.
