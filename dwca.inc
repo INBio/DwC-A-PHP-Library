@@ -1,7 +1,5 @@
 <?php
 
-include_once('includes/test_utils.inc');
-
 include_once('includes/archive.inc');
 include_once('includes/archive_file.inc');
 include_once('includes/constants.inc');
@@ -13,41 +11,50 @@ include_once('includes/parser.inc');
  * Manage a DwC-A (Darwin Core Archive) to extract information from the zip file
  * and return it as arrays (hashes).
  */
-class DwCAFile implements DwCA{
+class DwCA{
 
-  private $zip_path;
-  private $hash;
-
-  private $core_filename;
-  private $core_config;
-  private $core_mappings;
-
-  private $dwca_file;
-
-  private $parser;
-
-  private $meta_filename;
-  private $eml_filename;
-
+  private $dir;
+  private $archive;
+  private $core;
+  private $extensions;
 
   /**
    * @param $term
    *   An array or a stdClass object that is a Drupal taxonomy term. Can include
    *   geo extensions.
    */
-  public function __construct() {
+  public function __construct($path) {
 
-    // Default settings
-    $this->separator = DWCA_DEFAULT_FIELD_SEPARATOR;
+    // DwC-A format validation
+    $zip = new zipArchive();
 
-    $this->meta_filename = DWCA_META_FILE;
-    $this->eml_filename = DWCA_EML_FILE;
+    if (! $zip->open($path)){
+      throw new Exception("Failed to open zip file\n");
+    }
 
-    $this->core_config = Array();
-    $this->core_mappings = Array();
+    if ( $zip->numFiles < 3){
+      throw new Exception("This is not a DwC-A formated file\n");
+    }
 
-    $this->parser = new ParserCSV();
+    if( ! $zip->locateName(Constants::META_FILENAME)){
+      throw new Exception("This is not a recognized DwC-A formated file: ".Constants::META_FILENAME." mising\n");
+    }
 
+    // if everything works, the extraction proceed
+    $status = TRUE;
+    $hash   = hash_file('md5', $path);
+    $dir    = dirname($path)."/".$hash;
+
+    if(!file_exists($dir)){
+
+      $status = $zip->extractTo($dir);
+
+      if ( ! $status ){
+        print "Error extracting $path to $dir";
+        throw new Exception();
+      }
+      $this->dir = $dir;
+    }
   }
 
   /**
@@ -59,43 +66,10 @@ class DwCAFile implements DwCA{
    *  0 if the file exist and in the right format.
    *  1 if error.
    */
-  public function open($path){
-
-    $this->hash = hash_file('md5', $path);
-
-    $dwca_file = new zipArchive();
-    if (! $dwca_file->open($path)){
-      exit( "Error: Failed to open zip file\n" );
-    }
-
-    if ( $dwca_file->numFiles < 3){
-      exit( "Error: This is not a DwC-A formated file\n" );
-    }
-
-    if( ! $dwca_file->locateName($this->meta_filename)){
-      exit( "Error: This is not a DwC-A formated file: $this->meta_filename mising\n" );
-    }
-
-    $this->dwca_file = $dwca_file;
-    $this->zip_path = $path;
-
-    // ------------------------------------------------------------------------------------
-
-    $filename = dirname($this->zip_path)."/".$this->hash."/".$this->meta_filename;
-    $status = TRUE;
-
-    if(!file_exists($filename)){
-      $status = $this->dwca_file->extractTo(
-        dirname($this->zip_path)."/".$this->hash,
-        $this->meta_filename);
-
-      if ( ! $status ){
-        print 'Error extracting '.$this->meta_filename;
-      }
-    }
+  public function open(){
 
     // Read the xml by using simplexml library.
-    $xml = simplexml_load_file($filename);
+    $xml = simplexml_load_file($this->dir."/".Constants::META_FILENAME);
 
     // Get the eml filename
     $attributes = $xml->attributes();

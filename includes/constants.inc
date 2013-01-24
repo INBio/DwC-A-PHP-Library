@@ -2,8 +2,9 @@
 
 abstract class Constants{
 
-  const OCCURRENCE  = 'http://rs.tdwg.org/dwc/terms/Occurrence';
-  const TAXON       = 'http://rs.tdwg.org/dwc/terms/Taxon';
+  const TAXON         = 'http://rs.tdwg.org/dwc/terms/Taxon';
+  const OCCURRENCE    = 'http://rs.tdwg.org/dwc/terms/Occurrence';
+  const META_FILENAME = 'meta.xml';
 }
 
 ?>

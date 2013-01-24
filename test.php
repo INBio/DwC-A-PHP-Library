@@ -1,17 +1,21 @@
 <?php 
 
+include_once('includes/test_utils.inc');
 include_once('dwca.inc');
 
-  function test_1(){
+function test_open_dwca_file(){
 
-    $dwca = new DwCAFile();
-    $dwca->open('examples/dwca-eol.zip');
-
-    $rows = $dwca->get_core_info(0, 50);
-
-    test_result('Test 1', (count($rows)== 50));
+  try{
+    $dwca = new DwCA('examples/dwca-eol.zip');
+  }catch (Exception $ex){
+    $dwca = FALSE;
   }
 
-test_1();
+  test_result('Open DwC-A file', ($dwca != FALSE));
+}
+
+test_open_dwca_file();
+#$dwca->open();
+#$rows = $dwca->get_core_info(0, 50);
 
 ?>
