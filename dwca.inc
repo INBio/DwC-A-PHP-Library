@@ -1,6 +1,13 @@
 <?php
 
-include 'includes/ParserCSV.inc';
+include_once('includes/test_utils.inc');
+
+include_once('includes/archive.inc');
+include_once('includes/archive_file.inc');
+include_once('includes/constants.inc');
+include_once('includes/metadata.inc');
+include_once('includes/parser.inc');
+
 
 /**
  * Manage a DwC-A (Darwin Core Archive) to extract information from the zip file
