@@ -1,0 +1,90 @@
+<archive xmlns="http://rs.tdwg.org/dwc/text/" metadata="eml.xml">
+  <core encoding="utf-8" fieldsTerminatedBy="\t" linesTerminatedBy="\n" fieldsEnclosedBy="" ignoreHeaderLines="0" rowType="http://rs.tdwg.org/dwc/terms/Taxon">
+    <files>
+      <location>taxon.txt</location>
+    </files>
+    <id index="0" />
+    <field default="INBio, Costa Rica" term="http://purl.org/dc/terms/rightsHolder"/>
+    <field default="CC-Attribution-NonCommercial-ShareAlike" term="http://purl.org/dc/terms/license"/>
+    <field index="1" term="http://rs.tdwg.org/dwc/terms/family"/>
+    <field index="2" term="http://rs.tdwg.org/dwc/terms/genus"/>
+    <field index="3" term="http://rs.tdwg.org/dwc/terms/kingdom"/>
+    <field index="4" term="http://rs.tdwg.org/dwc/terms/order"/>
+    <field index="5" term="http://rs.tdwg.org/dwc/terms/scientificNameAuthorship"/>
+    <field index="6" term="http://rs.tdwg.org/dwc/terms/class"/>
+    <field index="7" term="http://rs.tdwg.org/dwc/terms/scientificName"/>
+    <field index="8" term="http://purl.org/dc/terms/modified"/>
+    <field index="9" term="http://rs.tdwg.org/dwc/terms/acceptedNameUsage"/>
+    <field index="10" term="http://rs.tdwg.org/dwc/terms/phylum"/>
+    <field index="11" term="http://purl.org/dc/terms/language"/>
+  </core>
+  <extension encoding="utf-8" fieldsTerminatedBy="\t" linesTerminatedBy="\n" fieldsEnclosedBy="" ignoreHeaderLines="0" rowType="http://rs.gbif.org/terms/1.0/Image">
+    <files>
+      <location>image.txt</location>
+    </files>
+    <coreid index="0" />
+    <field default="CC-Attribution-NonCommercial-ShareAlike" term="http://purl.org/dc/terms/license"/>
+    <field default="INBio, Costa Rica" term="http://purl.org/dc/terms/publisher"/>
+    <field index="1" term="http://purl.org/dc/terms/creator"/>
+    <field index="2" term="http://purl.org/dc/terms/created"/>
+    <field index="3" term="http://purl.org/dc/terms/identifier"/>
+    <field index="4" term="http://purl.org/dc/terms/rightsHolder"/>
+    <field index="5" term="http://purl.org/dc/terms/description"/>
+  </extension>
+  <extension encoding="utf-8" fieldsTerminatedBy="\t" linesTerminatedBy="\n" fieldsEnclosedBy="" ignoreHeaderLines="0" rowType="http://rs.gbif.org/terms/1.0/VernacularName">
+    <files>
+      <location>vernacularname.txt</location>
+    </files>
+    <coreid index="0" />
+    <field index="1" term="http://rs.tdwg.org/dwc/terms/vernacularName"/>
+    <field index="2" term="http://purl.org/dc/terms/language"/>
+  </extension>
+  <extension encoding="utf-8" fieldsTerminatedBy="\t" linesTerminatedBy="\n" fieldsEnclosedBy="" ignoreHeaderLines="0" rowType="http://rs.gbif.org/terms/1.0/Reference">
+    <files>
+      <location>reference.txt</location>
+    </files>
+    <coreid index="0" />
+    <field index="1" term="http://purl.org/dc/terms/language"/>
+    <field index="2" term="http://purl.org/dc/terms/bibliographicCitation"/>
+  </extension>
+  <extension encoding="utf-8" fieldsTerminatedBy="\t" linesTerminatedBy="\n" fieldsEnclosedBy="" ignoreHeaderLines="0" rowType="http://www.pliniancore.org/plic/pcfcore/PlinianCore2.3">
+    <files>
+      <location>plinian_core_flat_version_2.3.txt</location>
+    </files>
+    <coreid index="0" />
+    <field index="1" term="http://www.pliniancore.org/plic/pcfcore/unstructuredDocumentation"/>
+    <field index="2" term="http://iucn.org/terms/threatStatus"/>
+    <field index="3" term="http://www.pliniancore.org/plic/pcfcore/version"/>
+    <field index="4" term="http://www.pliniancore.org/plic/pcfcore/habit"/>
+    <field index="5" term="http://www.pliniancore.org/plic/pcfcore/territory"/>
+    <field index="6" term="http://purl.org/dc/terms/audience"/>
+    <field index="7" term="http://purl.org/dc/elements/1.1/contributor"/>
+    <field index="8" term="http://www.pliniancore.org/plic/pcfcore/theManagement"/>
+    <field index="9" term="http://www.pliniancore.org/plic/pcfcore/migratoryData"/>
+    <field index="10" term="http://www.pliniancore.org/plic/pcfcore/typification"/>
+    <field index="11" term="http://www.pliniancore.org/plic/pcfcore/legislation"/>
+    <field index="12" term="http://purl.org/dc/terms/creator"/>
+    <field index="13" term="http://www.pliniancore.org/plic/pcfcore/interactions"/>
+    <field index="14" term="http://www.pliniancore.org/plic/pcfcore/unstructuredNaturalHistory"/>
+    <field index="15" term="http://www.pliniancore.org/plic/pcfcore/molecularData"/>
+    <field index="16" term="http://www.pliniancore.org/plic/pcfcore/scientificDescription"/>
+    <field index="17" term="http://www.pliniancore.org/plic/pcfcore/reproduction"/>
+    <field index="18" term="http://www.pliniancore.org/plic/pcfcore/chromosomicNumberN"/>
+    <field index="19" term="http://www.pliniancore.org/plic/pcfcore/folklore"/>
+    <field index="20" term="http://www.pliniancore.org/plic/pcfcore/theUses"/>
+    <field index="21" term="http://www.pliniancore.org/plic/pcfcore/identificationKeys"/>
+    <field index="22" term="http://purl.org/dc/terms/created"/>
+    <field index="23" term="http://rs.tdwg.org/dwc/terms/establishmentMeans"/>
+    <field index="24" term="http://www.pliniancore.org/plic/pcfcore/behavior"/>
+    <field index="25" term="http://www.pliniancore.org/plic/pcfcore/briefDescription"/>
+    <field index="26" term="http://www.pliniancore.org/plic/pcfcore/invasivenessData"/>
+    <field index="27" term="http://www.pliniancore.org/plic/pcfcore/annualCycle"/>
+    <field index="28" term="http://www.pliniancore.org/plic/pcfcore/feeding"/>
+    <field index="29" term="http://www.pliniancore.org/plic/pcfcore/ecologicalSignificance"/>
+    <field index="30" term=" http://www.pliniancore.org/plic/pcfcore/distribution"/>
+    <field index="31" term="http://www.pliniancore.org/plic/pcfcore/lifeCycle"/>
+    <field index="32" term="http://www.pliniancore.org/plic/pcfcore/populationBiology"/>
+    <field index="33" term="http://rs.tdwg.org/dwc/terms/habitat"/>
+    <field index="34" term="http://purl.org/dc/terms/abstract"/>
+  </extension>
+</archive>
