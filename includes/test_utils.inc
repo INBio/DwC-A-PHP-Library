@@ -10,7 +10,7 @@ function test_result($test_name, $pass = TRUE, $reason = 'Baaaaad programmer wor
     $result  = "[FAIL] $test_name -> ($reason)\n";
   }
 
-  exit($result);
+  print $result;
 }
 
 

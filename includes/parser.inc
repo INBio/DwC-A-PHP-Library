@@ -182,7 +182,7 @@ class ParserCSV {
    * @return
    *   Two dimensional array that contains the data in the CSV file.
    */
-  public function parse(Iterator $lineIterator) {
+  public function parse(Iterator $lineIterator, $defaults = Array()) {
     $skipLine = $this->skipFirstLine;
     $rows = array();
 
@@ -301,6 +301,10 @@ class ParserCSV {
         foreach ($this->columnNames as $columnName) {
           $field = array_shift($fields);
           $row[$columnName] = isset($field) ? $field : '';
+        }
+        // add the default fixed values
+        foreach ( $defaults as $term => $value) {
+          $row[$term] = $value;
         }
       }
       $rows[] = $row;

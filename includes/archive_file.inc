@@ -11,6 +11,8 @@ class ArchiveFile{
   private $ignoreheader_lines;
   private $date_format;
   private $location;
+  private $fields;
+  private $defaults;
 
   function get_fields_terminated_by(){
     return  $this->fields_terminated_by;
@@ -60,8 +62,8 @@ class ArchiveFile{
     $this->encoding   = $encoding  ;
   }
 
-  function set_row_type($row_tpe){
-    $this->row_tpe   = $row_tpe  ;
+  function set_row_type($row_type){
+    $this->row_type   = $row_type  ;
   }
 
   function set_ignoreheader_lines($bool){
@@ -73,7 +75,23 @@ class ArchiveFile{
   }
 
   function set_location($path){
-    $this->path   = $path  ;
+    $this->location   = $path  ;
+  }
+
+  function set_fields($new_fields){
+    $this->fields   = $new_fields  ;
+  }
+
+  function get_fields(){
+    return $this->fields;
+  }
+
+  function set_defaults($new_defaults){
+    $this->defaults   = $new_defaults  ;
+  }
+
+  function get_defaults(){
+    return $this->defaults;
   }
 }
 
