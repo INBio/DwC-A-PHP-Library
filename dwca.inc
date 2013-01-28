@@ -58,72 +58,21 @@ class DwCA{
     $this->dir = $dir;
   }
 
-  /**
-   * Initialize the class, set defaults and check if the file exist
-   * @param $path
-   *  A string with the path of the file to access in the file system.
-   *
-   * @return
-   *  0 if the file exist and in the right format.
-   *  1 if error.
-   */
   public function open(){
 
     // Read the xml by using simplexml library.
     $xml = simplexml_load_file($this->dir."/".Constants::META_FILENAME);
 
     //load the info from the CORE file
-    $core_file = new ArchiveFile();
-
-    $core_attributes = $xml->core->attributes();
-
-    $core_file->set_fields_terminated_by(stripcslashes((string) $core_attributes['fieldsTerminatedBy'] ));
-    $core_file->set_fields_enclosed_by(  stripcslashes((string) $core_attributes['fieldsEnclosedBy'] ));
-    $core_file->set_lines_terminated_by( stripcslashes((string) $core_attributes['linesTerminatedBy'] ));
-    $core_file->set_encoding(            (string) $core_attributes['encoding']);
-    $core_file->set_row_type(            (string) $core_attributes['rowType']);
-    $core_file->set_ignoreheader_lines(  (string) $core_attributes['ignoreHeader_lines']);
-    $core_file->set_location(            (string) $xml->core->files->location);
-    $core_file->set_date_format(         'DD/MM/YYYY');
-
-    // Get the core mappings and configuration
-    $core_id_attributes = $xml->core->id->attributes();
-    $fields[ (string) $core_id_attributes['index'] ] ='id';
-    $defaults = Array();
-
-    foreach($xml->core->field as $field ){
-      $field_attributes = $field->attributes();
-      $index = (string) $field_attributes['index'];
-      $term = (string) $field_attributes['term'];
-
-      if( empty($index) ){
-        $value = (string) $field_attributes['default'];
-        $defaults[$term] = $value;
-      }else{
-        $fields[$index] = $term;
-      }
-    }
-
-    $core_file->set_fields($fields);
-    $core_file->set_defaults($defaults);
-    $this->core = $core_file;
+    $file = $this->generate_archive_file_from_xml($xml->core);
+    $this->core = $file;
 
     //load the info from the EXTENSIONS file
-    
+    foreach($xml->extension as $extension){
+      $file = $this->generate_archive_file_from_xml($extension);
+      $this->extensions[] = $file;
+    }
 
-
-
-
-
-
-    /*
-    // Get the eml filename
-    $attributes = $xml->attributes();
-    $this->eml_filename = (string) $attributes['metadata'];
-
-    // ------
-    
-    */
   }
 
   public function get_records(ArchiveFile $file, $start = 0, $limit = 50){
@@ -154,6 +103,14 @@ class DwCA{
    */
   public function get_metadata(){
 
+    /*
+    // Get the eml filename
+    $attributes = $xml->attributes();
+    $this->eml_filename = (string) $attributes['metadata'];
+
+    // ------
+    
+    */
 
     $filename = dirname($this->zip_path)."/".$this->hash."/".$this->eml_filename;
     $status = TRUE;
@@ -180,7 +137,6 @@ class DwCA{
         'data_resource_title'        => (string) $xml->dataset->title,
         'data_resource_description' => (string) $xml->dataset->abstract->para
     );
-    // ------
 
     return $meta_info;
   }
@@ -229,5 +185,53 @@ class DwCA{
     $this->extensions = $new_extensions;
   }
 
+  private function generate_archive_file_from_xml($xml_archive_file){
+
+    $attributes = $xml_archive_file->attributes();
+    $file = new ArchiveFile();
+
+    $file->set_fields_terminated_by(stripcslashes((string) $attributes['fieldsTerminatedBy'] ));
+    $file->set_fields_enclosed_by(  stripcslashes((string) $attributes['fieldsEnclosedBy'] ));
+    $file->set_lines_terminated_by( stripcslashes((string) $attributes['linesTerminatedBy'] ));
+    $file->set_encoding(            (string) $attributes['encoding']);
+    $file->set_row_type(            (string) $attributes['rowType']);
+    $file->set_ignoreheader_lines(  (string) $attributes['ignoreHeader_lines']);
+    $file->set_location(            (string) $xml_archive_file->files->location);
+    $file->set_date_format(         'DD/MM/YYYY');
+
+
+    $id_attributes = FALSE; 
+
+    // Get the core mappings and configuration
+    if(isset($xml_archive_file->id)){
+      $id_attributes = $xml_archive_file->id->attributes();
+    }else{
+      // The standard uses diferent element names for the id's if present
+      // in the core file or in the extensions files
+      $id_attributes = $xml_archive_file->coreid->attributes();
+    }
+
+    $fields[ (string) $id_attributes['index'] ] ='id';
+    $defaults = Array();
+
+    foreach($xml_archive_file->field as $field ){
+      $field_attributes = $field->attributes();
+      $index = (string) $field_attributes['index'];
+      $term = (string) $field_attributes['term'];
+
+      if( empty($index) ){
+        $value = (string) $field_attributes['default'];
+        $defaults[$term] = $value;
+      }else{
+        $fields[$index] = $term;
+      }
+    }
+
+    $file->set_fields($fields);
+    $file->set_defaults($defaults);
+
+    return $file;
+
+  }
 
 }

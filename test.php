@@ -58,6 +58,7 @@ function test_get_extensions(){
   }catch (Exception $ex){
     $extensions = FALSE;
   }
+  var_dump($extensions);
 
   test_result('Test get extensions', (count($extensions) == 4));
 }
