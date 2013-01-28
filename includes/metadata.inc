@@ -1,138 +1,152 @@
 <?php
 
-class Adreess{
-  private $address;
-  private $city;
-  private $province;
-  private $country;
-  private $postalCode;
+class EMLDocument{
+  public $dataset;
+  public $additional_metadata;
 }
 
-class Agent{
-  private $firstName;
-  private $lastName;
-  private $organisation;
-  private $position;
-  private $address;
+class AdditionalMetadata{
+
+  public $date_stamp;
+  public $hierarchy_level;
+  public $citation;
+  public $bibliography = Array();
+  public $physical = Array();
+  public $resource_logo_url;
+  public $collection;
+  public $formation_period;
+  public $specimen_observation_method;
+  public $living_time_period;
+}
+
+
+class Collection{
+  public $parent_collection_identifier;
+  public $collection_identifier;
+  public $collection_name;
 }
 
 class Citation{
-  private $identifier;
-  private $citation;
-  private $phone;
-  private $email;
-  private $role;
-  private $homepage;
+  public $identifier;
+  public $citation;
 }
 
-class Attribute{
-  private $category;
-  private $localeBundle;
-  private $name;
-  private $value;
+class Physical{
+
+  public $object_name;
+  public $character_encoding;
+  public $format;
+  public $charset;
+  public $distribution_url;
+  public $name;
 }
 
-class BBox{
-
-  // x = east/west=longitude, -180/180
-  // y = north/south = latitude, -90/90
-  private $max;
-  private $min;
-
+class DataFormat{
+  public $format_name;
+  public $format_value;
 }
 
-class BibliographicCitationSet{
-
-  private $bibliographicCitations = Array();
+class Dataset{
+  public $alternate_identifier = Array(); // String
+  public $titles = Array(); //Title
+  public $creator; // Contact 
+  public $metadata_provider; // Contact 
+  public $associated_party; // Contact
+  public $pub_date; // String
+  public $language; // String
+  public $abstract; // String
+  public $keyword_set = Array(); //KeywordSet
+  public $aditional_info; // String
+  public $intellectualRights; // String
+  public $distribution; //:S
+  public $coverage; // Coverage
+  public $purpose; // String
+  public $contact; //Contact
+  public $methods = Array(); //Method
+  public $project; // Project
 }
 
-class GeospatialCoverage{
-
-  private $description;
-  private $keywords = Array();
-  private $boundingCoordinates;
-}
-
-
-class KeywordSet{
-
-  private $keywordThesaurus;
-  private $keywords = Array();
-}
-
-class LocaleBundle{
-
-  private $locale;
-  private $charset;
-}
-
-
-class PhysicalData{
-
-  private $charset;
-  private $distributionUrl;
-  private $format;
-  private $formatVersion;
-  private $name;
-}
-
-class Point{
-
-  const MAX_LONGITUDE = 180.0;
-  const MIN_LONGITUDE = -180.0;
-  const MAX_LATITUDE = 90.0;
-  const MIN_LATITUDE = -90.0;
-  // x (east/west), -180/180
-  private $longitude;
-  // y (north/south), -90/90
-  private $latitude;
-}
-
+// -------------------------------------
 
 class Project{
-  private $title;
-  private $personnel;
-  private $funding;
-  private $studyAreaDescription;
+  public $title;
+  public $personnel = Array();
+  public $funding;
+  public $study_area_description;
+  public $design_description;
 }
 
-class StudyAreaDescription{
 
-  private $name = StudyAreaDescriptor::GENERIC;
-  private $citableClassificationSystem = "false";
-  private $descriptorValue;
-  private $designDescription;
+class Methods{
+  public $method_step = Array();
+  public $sampling;
+  public $quality_control;
+}
+
+class Sampling{
+  public $study_extent;
+  public $description;
+}
+
+class Coverage{}
+
+class GeographicCoverage extends Coverage{
+  public $geographic_description;
+  public $bounding_box;
+}
+
+class TemporalCoverage extends Coverage{
+
+  public $dates = Array();
+
+}
+
+class TaxonomicCoverage extends Coverage{
+  public $general_taxonomic_coverage;
+  public $taxonomic_classification = Array();
+  
+}
+
+class TimeKeyword{
+  public $start;
+  public $end;
 }
 
 class TaxonKeyword{
 
-  private $scientificName;
-  private $rank;
-  private $commonName;
+  private $taxon_rank_name;
+  private $taxon_rank;
+  private $common_name;
 }
 
-
-class TaxonomicCoverage{
-
-  private $description;
-#  private $taxonKeywords = new ArrayList<TaxonKeyword>();
-  private $taxonKeywords = Array();
+class KeywordSet{
+  public $keyword = Array();
+  public $thesaurus;
 }
 
-
-class TemporalCoverage{
-
-  private $startDate;
-  private $endDate;
-  private $formationPeriod;
-  private $livingTimePeriod;
+class Agent{
+  public $given_name;
+  public $last_name;
+  public $organisation_name;
+  public $position_name;
+  public $address;
+  public $phone;
+  public $electronic_mail_address;
+  public $online_url;
+  public $role;
 }
 
-
-class TimeKeyword{
-  private $start;
-  private $end;
+class Adreess{
+  public $delivery_point;
+  public $city;
+  public $administrative_area;
+  public $postal_code;
+  public $country;
 }
 
+class Title{
 
+  public $lang;
+  public $text;
+}
 ?>
