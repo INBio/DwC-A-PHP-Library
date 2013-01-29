@@ -17,6 +17,7 @@ class DwCA{
   private $archive;
   private $core;
   private $extensions;
+  private $metadata;
 
   /**
    * @param $term
@@ -73,6 +74,13 @@ class DwCA{
       $this->extensions[] = $file;
     }
 
+    // set the name of the metadata file
+    $attributes = $xml->attributes();
+    $eml = new EMLDocument();
+    $eml->filename = (string) $attributes['metadata'];
+
+    $this->metadata = $eml;
+
   }
 
   public function get_records(ArchiveFile $file, $start = 0, $limit = 50){
@@ -103,42 +111,152 @@ class DwCA{
    */
   public function get_metadata(){
 
-    /*
-    // Get the eml filename
-    $attributes = $xml->attributes();
-    $this->eml_filename = (string) $attributes['metadata'];
+    $full_filename = $this->dir."/".$this->metadata->filename;
 
-    // ------
-    
-    */
-
-    $filename = dirname($this->zip_path)."/".$this->hash."/".$this->eml_filename;
-    $status = TRUE;
-
-    if(!file_exists($filename)){
-      $status = $this->dwca_file->extractTo(
-        dirname($this->zip_path)."/".$this->hash,
-        $this->eml_filename);
-
-      if ( ! $status ){
-        print 'Error extracting '.$this->eml_filename;
-      }
+    if(!file_exists($full_filename)){
+      throw new Exception("$full_filename: not found. Missing metadata file");
     }
 
     // Read the xml by using simplexml library.
-    $xml = simplexml_load_file($filename);
+    $xml = simplexml_load_file($full_filename);
 
+    // Verify that is a GBIF EML Profile
+    if( !$xml->getName() == 'eml' || !$xml->getNamespaces()['eml'] == 'eml' || !$xml->attributes()['system'] == 'http://gbif.org'){
+      throw new Exception("Metadata file format not recognized");
+    }
 
-    // Get the data Organization, data resource name and description.
-    $meta_info = Array(
-        'metadata' => TRUE,
-        'data_provider_title'         => (string) $xml->dataset->creator->organizationName,
-        'data_provider_description'  => '',
-        'data_resource_title'        => (string) $xml->dataset->title,
-        'data_resource_description' => (string) $xml->dataset->abstract->para
-    );
+    $xml->dataset->
 
-    return $meta_info;
+  $xml->dataset
+    $xml->dataset->alternateIdentifier
+    $xml->dataset->title xml:lang="en"
+    $xml->dataset->creator
+      $xml->dataset->creator->individualName
+        $xml->dataset->creator->individualName->givenName
+        $xml->dataset->creator->individualName->surName
+      $xml->dataset->creator->organizationName
+      $xml->dataset->creator->positionName
+      $xml->dataset->creator->address
+        $xml->dataset->creator->address->deliveryPoint
+        $xml->dataset->creator->address->city
+        $xml->dataset->creator->address->administrativeArea
+        $xml->dataset->creator->address->postalCode
+        $xml->dataset->creator->address->country
+      $xml->dataset->creator->phone
+      $xml->dataset->creator->electronicMailAddress
+      $xml->dataset->creator->onlineUrl
+    $xml->dataset->metadataProvider
+      $xml->dataset->metadataProvider->individualName
+        $xml->dataset->metadataProvider->individualName->givenName
+        $xml->dataset->metadataProvider->individualName->surName
+      $xml->dataset->metadataProvider->address
+        $xml->dataset->metadataProvider->address->deliveryPoint
+        $xml->dataset->metadataProvider->addresscity
+        $xml->dataset->metadataProvider->address->administrativeArea
+        $xml->dataset->metadataProvider->address->postalCode
+        $xml->dataset->metadataProvider->address->country
+      $xml->dataset->metadataProvider->phone
+      $xml->dataset->metadataProvider->electronicMailAddress
+      $xml->dataset->metadataProvider->onlineUrl
+    $xml->dataset->associatedParty
+      $xml->dataset->associatedParty->individualName
+        $xml->dataset->associatedParty->individualName->surName
+      $xml->dataset->associatedParty->phone
+      $xml->dataset->associatedParty->role
+    $xml->dataset->pubDate
+    $xml->dataset->language
+    $xml->dataset->abstract->para
+    $xml->dataset->keywordSet
+      $xml->dataset->keywordSet->keyword
+      $xml->dataset->keywordSet->keywordThesaurus
+    $xml->dataset->additionalInfo->para
+    $xml->dataset->intellectualRights-> para
+    $xml->dataset->distribution->online->url
+    $xml->dataset->coverage
+      $xml->dataset->coverage->geographicCoverage
+        $xml->dataset->coverage->geographicCoverage->geographicDescription
+        $xml->dataset->coverage->geographicCoverage->boundingCoordinates
+          $xml->dataset->coverage->geographicCoverage->boundingCoordinate->swestBoundingCoordinate
+          $xml->dataset->coverage->geographicCoverage->boundingCoordinate->eastBoundingCoordinate
+          $xml->dataset->coverage->geographicCoverage->boundingCoordinate->northBoundingCoordinate
+          $xml->dataset->coverage->geographicCoverage->boundingCoordinate->southBoundingCoordinate
+      $xml->dataset->coverage->temporalCoverage
+        $xml->dataset->coverage->temporalCoverage->rangeOfDates
+          $xml->dataset->coverage->temporalCoverage->rangeOfDates->beginDate->calendarDate
+          $xml->dataset->coverage->temporalCoverage->rangeOfDates->endDate->calendarDate
+          
+      $xml->dataset->coverage->temporalCoverage
+        $xml->dataset->coverage->temporalCoverage->singleDateTime->calendarDate
+      $xml->dataset->coverage->taxonomicCoverage
+        $xml->dataset->coverage->taxonomicCoverage->generalTaxonomicCoverage
+        $xml->dataset->coverage->taxonomicCoverage->taxonomicClassification
+          $xml->dataset->coverage->taxonomicCoverage->taxonomicClassification->taxonRankName
+          $xml->dataset->coverage->taxonomicCoverage->taxonomicClassification->taxonRankValue
+          $xml->dataset->coverage->taxonomicCoverage->taxonomicClassification->commonName
+    $xml->dataset->purpose->para
+    $xml->dataset->contact
+      $xml->dataset->contact->individualName
+        $xml->dataset->contact->individualName->givenName
+        $xml->dataset->contact->individualName->surName
+      $xml->dataset->contact->organizationName
+      $xml->dataset->contact->positionName
+      $xml->dataset->contact->address
+        $xml->dataset->contact->address->deliveryPoint
+        $xml->dataset->contact->address->city
+        $xml->dataset->contact->address->administrativeArea
+        $xml->dataset->contact->address->postalCode
+        $xml->dataset->contact->address->country
+      $xml->dataset->contact->phone
+      $xml->dataset->contact->electronicMailAddress
+      $xml->dataset->contact->onlineUrl
+    $xml->dataset->methods
+      $xml->dataset->methods->methodStep
+        $xml->dataset->methods->methodStep->description->para
+      $xml->dataset->methods->sampling
+        $xml->dataset->methods->sampling->studyExtent
+          $xml->dataset->methods->sampling->studyExtent->description->para
+        $xml->dataset->methods->sampling->samplingDescription->para
+      $xml->dataset->methods->qualityControl
+        $xml->dataset->methods->qualityControl->description->para
+    $xml->dataset->project
+      $xml->dataset->project->title
+      $xml->dataset->project->personnel
+        $xml->dataset->project->personnel->individualName
+          $xml->dataset->project->personnel->individualName->surName
+        $xml->dataset->project->personnel->role
+      $xml->dataset->project->funding->para
+      $xml->dataset->project->studyAreaDescription
+        $xml->dataset->project->studyAreaDescription->descriptor
+          $xml->dataset->project->studyAreaDescription->descriptor->descriptorValue
+      $xml->dataset->project->designDescription
+        $xml->dataset->project->designDescription->description
+      $xml->additionalMetadata
+        $xml->additionalMetadata->metadata
+          $xml->additionalMetadata->metadata->gbif
+            $xml->additionalMetadata->metadata->gbif->dateStamp
+            $xml->additionalMetadata->metadata->gbif->hierarchyLevel
+            $xml->additionalMetadata->metadata->gbif->citation identifier="doi:tims-ident.2135.ex43.33.d"
+            $xml->additionalMetadata->metadata->gbif->bibliography
+              $xml->additionalMetadata->metadata->gbif->bibliography->citation
+            $xml->additionalMetadata->metadata->gbif->physical
+              $xml->additionalMetadata->metadata->gbif->physical->objectName
+              $xml->additionalMetadata->metadata->gbif->physical->characterEncoding
+              $xml->additionalMetadata->metadata->gbif->physical->dataFormat
+                $xml->additionalMetadata->metadata->gbif->physical->dataFormat->externallyDefinedFormat
+                  $xml->additionalMetadata->metadata->gbif->physical->dataFormat->externallyDefinedFormat->formatName
+                  $xml->additionalMetadata->metadata->gbif->physical->dataFormat->externallyDefinedFormat->formatVersion
+              $xml->additionalMetadata->metadata->gbif->physical->distribution
+                $xml->additionalMetadata->metadata->gbif->physical->distribution->online->url
+            $xml->additionalMetadata->metadata->gbif->resourceLogoUrl
+            $xml->additionalMetadata->metadata->gbif->collection
+              $xml->additionalMetadata->metadata->gbif->collection->parentCollectionIdentifier
+              $xml->additionalMetadata->metadata->gbif->collection->collectionIdentifier
+              $xml->additionalMetadata->metadata->gbif->collection->collectionName
+            $xml->additionalMetadata->metadata->gbif->formationPeriod
+            $xml->additionalMetadata->metadata->gbif->specimenPreservationMethod
+            $xml->additionalMetadata->metadata->gbif->livingTimePeriod
+
+    return $this->metadata;
   }
 
   /**
