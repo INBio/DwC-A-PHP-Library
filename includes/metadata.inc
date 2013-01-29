@@ -78,8 +78,8 @@ class Project{
 }
 
 
-class Methods{
-  public $method_step = Array();
+class Method{
+  public $method_step;
   public $sampling;
   public $quality_control;
 }
@@ -141,7 +141,7 @@ class Agent{
   public $role;
 }
 
-class Adreess{
+class Address{
   public $delivery_point;
   public $city;
   public $administrative_area;
