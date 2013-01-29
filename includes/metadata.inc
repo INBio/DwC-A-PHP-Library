@@ -50,7 +50,7 @@ class DataFormat{
 class Dataset{
   public $alternate_identifier = Array(); // String
   public $titles = Array(); //Title
-  public $creator; // Contact 
+  public $creator; // Agent
   public $metadata_provider; // Contact 
   public $associated_party; // Contact
   public $pub_date; // String
@@ -98,13 +98,17 @@ class GeographicCoverage extends Coverage{
 
 class TemporalCoverage extends Coverage{
 
-  public $dates = Array();
+  public $single;
+  public $begin;
+  public $end;
 
 }
 
 class TaxonomicCoverage extends Coverage{
   public $general_taxonomic_coverage;
-  public $taxonomic_classification = Array();
+  public $taxon_rank_name;
+  public $taxon_rank_value;
+  public $common_name;
   
 }
 
