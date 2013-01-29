@@ -58,14 +58,31 @@ function test_get_extensions(){
   }catch (Exception $ex){
     $extensions = FALSE;
   }
-  var_dump($extensions);
 
   test_result('Test get extensions', (count($extensions) == 4));
+}
+
+function test_get_metadata(){
+
+  $eml = False;
+
+  try{
+    $dwca = new DwCA('examples/eml.zip');
+    $dwca->open();
+    $eml = $dwca->get_metadata();
+
+  }catch (Exception $ex){
+    $eml = FALSE;
+    print $ex;
+  }
+
+  test_result('Test get Metadata', ($eml->dataset->metadata_provider->address->delivery_point === "Universitestparken 15" ));
 }
 
 test_open_dwca_file();
 test_open();
 test_get_records();
 test_get_extensions();
+test_get_metadata();
 
 ?>
