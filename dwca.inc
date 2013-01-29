@@ -4,6 +4,7 @@ include_once('includes/archive.inc');
 include_once('includes/archive_file.inc');
 include_once('includes/constants.inc');
 include_once('includes/metadata.inc');
+include_once('includes/eml_utils.inc');
 include_once('includes/parser.inc');
 
 
