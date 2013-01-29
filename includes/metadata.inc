@@ -1,6 +1,7 @@
 <?php
 
 class EMLDocument{
+  public $filename;
   public $dataset;
   public $additional_metadata;
 }
