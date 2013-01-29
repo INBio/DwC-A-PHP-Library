@@ -62,7 +62,7 @@ function test_get_extensions(){
   test_result('Test get extensions', (count($extensions) == 4));
 }
 
-function test_get_metadata(){
+function test_get_metadata_dataset(){
 
   $eml = False;
 
@@ -76,13 +76,30 @@ function test_get_metadata(){
     print $ex;
   }
 
-  test_result('Test get Metadata', ($eml->dataset->metadata_provider->address->delivery_point === "Universitestparken 15" ));
+  test_result('Test get_metadata: dataset', ($eml->dataset->metadata_provider->address->delivery_point === "Universitestparken 15" ));
 }
+
+function test_get_metadata_additional_metadata(){
+
+  $eml = False;
+
+  try{
+    $dwca = new DwCA('examples/eml.zip');
+    $dwca->open();
+    $eml = $dwca->get_metadata();
+
+  }catch (Exception $ex){
+    $eml = FALSE;
+    print $ex;
+  }
+
+  test_result('Test get_metadata: additional_metadata', ($eml->additional_metadata->collection->collection_name === "Mammals" ));}
 
 test_open_dwca_file();
 test_open();
 test_get_records();
 test_get_extensions();
-test_get_metadata();
+test_get_metadata_dataset();
+test_get_metadata_additional_metadata();
 
 ?>
