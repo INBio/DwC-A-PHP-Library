@@ -11,7 +11,7 @@ include_once('includes/parser.inc');
  * Manage a DwC-A (Darwin Core Archive) to extract information from the zip file
  * and return it as arrays (hashes).
  */
-class DwCA extends DwCAObject{
+class DwCA{
 
   private $dir;
   private $core;
