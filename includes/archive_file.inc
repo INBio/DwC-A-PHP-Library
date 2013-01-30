@@ -1,8 +1,6 @@
 <?php
 
-include_once('includes/archive.inc');
-
-class ArchiveFile extends DwCAObject{
+class ArchiveFile{
 
   private $fields_terminated_by;
   private $fields_enclosed_by;

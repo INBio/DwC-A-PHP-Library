@@ -1,7 +1,5 @@
 <?php
 
-include_once('includes/archive.inc');
-
 class EMLDocument {
   private $filename;
   private $dataset;
