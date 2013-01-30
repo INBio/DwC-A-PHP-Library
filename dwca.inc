@@ -14,8 +14,9 @@ include_once('includes/parser.inc');
 class DwCA extends DwCAObject{
 
   private $dir;
-  private $archive;
   private $core;
+  private $parser;
+  private $archive;
   private $extensions;
   private $metadata;
 
@@ -96,6 +97,7 @@ class DwCA extends DwCAObject{
     $parser = new ParserCSV();
     $parser->setDelimiter($file->fields_terminated_by);
     $parser->setColumnNames(array_values($file->fields));
+    $this->parser = $parser;
 
     // parsing occurrence.txt file looking for occurrences
     $iterator = new ParserCSVIterator($filename);
