@@ -1,4 +1,5 @@
 <?php
+
 function process_address($xml){
 
   $address = new Address();
@@ -7,7 +8,7 @@ function process_address($xml){
   $address->city = (String) $xml->city;
   $address->administrative_area = (String) $xml->administrativeArea;
   $address->postal_code = (String) $xml->postalCode;
-  $address->contry = (String) $xml->country;
+  $address->country = (String) $xml->country;
 
   return $address;
 }
@@ -69,7 +70,7 @@ function process_taxonomic_coverage($xml){
   $coverage = new TaxonomicCoverage();
 
   $coverage->taxon_rank_name = (String) $xml->taxonomicClassification->taxonRankName;
-  $coverage->ranxon_rank_value = (String) $xml->taxonomicClassification->taxonRankValue;
+  $coverage->taxon_rank_value = (String) $xml->taxonomicClassification->taxonRankValue;
   $coverage->common_name = (String) $xml->taxonomicClassification->commonName;
 
   return $coverage;
@@ -122,7 +123,7 @@ function process_dataset_element($xml){
   $dataset->creator = process_agent($xml->creator);
   $dataset->metadata_provider = process_agent($xml->metadataProvider);
   $dataset->associated_party = process_agent($xml->associatedParty);
-  $dataset->pub_Date = (String) $xml->pubDate;
+  $dataset->pub_date = (String) $xml->pubDate;
   $dataset->language = (String) $xml->language;
   $dataset->abstract = (String) $xml->abstract->para;
   $dataset->keyword_set = process_keyword_set($xml->keywordSet);

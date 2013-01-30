@@ -1,6 +1,5 @@
 <?php
 
-include_once('includes/archive.inc');
 include_once('includes/archive_file.inc');
 include_once('includes/constants.inc');
 include_once('includes/metadata.inc');
@@ -12,7 +11,7 @@ include_once('includes/parser.inc');
  * Manage a DwC-A (Darwin Core Archive) to extract information from the zip file
  * and return it as arrays (hashes).
  */
-class DwCA{
+class DwCA extends DwCAObject{
 
   private $dir;
   private $archive;
@@ -87,7 +86,7 @@ class DwCA{
   public function get_records(ArchiveFile $file, $start = 0, $limit = 50){
 
     $status = TRUE;
-    $filename = $this->dir."/".$file->get_location();
+    $filename = $this->dir."/".$file->location;
 
     if(!file_exists($filename)){
       throw new Exception("$filename: not found. Problably due to an error while unziping the dwca file");
@@ -95,12 +94,12 @@ class DwCA{
 
     // Create and config the parser
     $parser = new ParserCSV();
-    $parser->setDelimiter($file->get_fields_terminated_by());
-    $parser->setColumnNames(array_values($file->get_fields()));
+    $parser->setDelimiter($file->fields_terminated_by);
+    $parser->setColumnNames(array_values($file->fields));
 
     // parsing occurrence.txt file looking for occurrences
     $iterator = new ParserCSVIterator($filename);
-    $rows = $this->_parseItems($parser, $iterator, $start, $limit, $file->get_defaults());
+    $rows = $this->_parseItems($parser, $iterator, $start, $limit, $file->defaults);
 
     return $rows;
   }
@@ -149,48 +148,19 @@ class DwCA{
     return $rows;
   }
 
-
-  function get_dir(){
-    return dir;
-  }
-  function set_dir($new_dir){
-    $this->dir = $new_dir;
-  }
-
-  function get_archive(){
-    return $this->archive;
-  }
-  function set_archive($new_archive){
-    $this->archive = $new_archive;
-  }
-
-  function get_core(){
-    return $this->core;
-  }
-  function set_core($new_core){
-    $this->core = $new_core;
-  }
-
-  function get_extensions(){
-    return $this->extensions;
-  }
-  function set_extensions($new_extensions){
-    $this->extensions = $new_extensions;
-  }
-
   private function generate_archive_file_from_xml($xml_archive_file){
 
     $attributes = $xml_archive_file->attributes();
     $file = new ArchiveFile();
 
-    $file->set_fields_terminated_by(stripcslashes((string) $attributes['fieldsTerminatedBy'] ));
-    $file->set_fields_enclosed_by(  stripcslashes((string) $attributes['fieldsEnclosedBy'] ));
-    $file->set_lines_terminated_by( stripcslashes((string) $attributes['linesTerminatedBy'] ));
-    $file->set_encoding(            (string) $attributes['encoding']);
-    $file->set_row_type(            (string) $attributes['rowType']);
-    $file->set_ignoreheader_lines(  (string) $attributes['ignoreHeader_lines']);
-    $file->set_location(            (string) $xml_archive_file->files->location);
-    $file->set_date_format(         'DD/MM/YYYY');
+    $file->fields_terminated_by = stripcslashes((string) $attributes['fieldsTerminatedBy'] );
+    $file->fields_enclosed_by   = stripcslashes((string) $attributes['fieldsEnclosedBy'] );
+    $file->lines_terminated_by  = stripcslashes((string) $attributes['linesTerminatedBy'] );
+    $file->encoding             = (string) $attributes['encoding'];
+    $file->row_type             = (string) $attributes['rowType'];
+    $file->ignoreheader_lines   = (string) $attributes['ignoreHeader_lines'];
+    $file->location             = (string) $xml_archive_file->files->location;
+    $file->date_format          = 'DD/MM/YYYY';
 
 
     $id_attributes = FALSE; 
@@ -220,10 +190,24 @@ class DwCA{
       }
     }
 
-    $file->set_fields($fields);
-    $file->set_defaults($defaults);
+    $file->fields = $fields;
+    $file->defaults = $defaults;
 
     return $file;
+  }
+  public function __set($dt, $vl) {
+    if(property_exists($this, $dt)){
+      $this->{$dt} = $vl;
+    }else{
+      throw new Exception("Undefined variables");
+    }
+  }
 
+  public function __get($dt) {
+    if(property_exists($this, $dt)){
+      return $this->{$dt};
+    }else{
+      throw new Exception("Undefined variables");
+    }
   }
 }

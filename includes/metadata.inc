@@ -1,157 +1,446 @@
 <?php
 
-class EMLDocument{
-  public $filename;
-  public $dataset;
-  public $additional_metadata;
+include_once('includes/archive.inc');
+
+class EMLDocument {
+  private $filename;
+  private $dataset;
+  private $additional_metadata;
+  public function __set($dt, $vl) {
+    if(property_exists($this, $dt)){
+      $this->{$dt} = $vl;
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
+
+  public function __get($dt) {
+    if(property_exists($this, $dt)){
+      return $this->{$dt};
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
 }
 
-class AdditionalMetadata{
+class AdditionalMetadata {
 
-  public $date_stamp;
-  public $hierarchy_level;
-  public $citation;
-  public $bibliography = Array();
-  public $physical = Array();
-  public $resource_logo_url;
-  public $collection;
-  public $formation_period;
-  public $specimen_observation_method;
-  public $living_time_period;
+  private $date_stamp;
+  private $hierarchy_level;
+  private $citation;
+  private $bibliography = Array();
+  private $physical = Array();
+  private $resource_logo_url;
+  private $collection;
+  private $formation_period;
+  private $specimen_preservation_method;
+  private $living_time_period;
+  public function __set($dt, $vl) {
+    if(property_exists($this, $dt)){
+      $this->{$dt} = $vl;
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
+
+  public function __get($dt) {
+    if(property_exists($this, $dt)){
+      return $this->{$dt};
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
 }
 
 
-class Collection{
-  public $parent_collection_identifier;
-  public $collection_identifier;
-  public $collection_name;
+class Collection {
+  private $parent_collection_identifier;
+  private $collection_identifier;
+  private $collection_name;
+  public function __set($dt, $vl) {
+    if(property_exists($this, $dt)){
+      $this->{$dt} = $vl;
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
+
+  public function __get($dt) {
+    if(property_exists($this, $dt)){
+      return $this->{$dt};
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
 }
 
-class Citation{
-  public $identifier;
-  public $citation;
+class Citation {
+  private $identifier;
+  private $citation;
+  public function __set($dt, $vl) {
+    if(property_exists($this, $dt)){
+      $this->{$dt} = $vl;
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
+
+  public function __get($dt) {
+    if(property_exists($this, $dt)){
+      return $this->{$dt};
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
 }
 
-class Physical{
+class Physical {
 
-  public $object_name;
-  public $character_encoding;
-  public $format;
-  public $charset;
-  public $distribution_url;
-  public $name;
+  private $object_name;
+  private $character_encoding;
+  private $format;
+  private $charset;
+  private $distribution_url;
+  private $name;
+  public function __set($dt, $vl) {
+    if(property_exists($this, $dt)){
+      $this->{$dt} = $vl;
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
+
+  public function __get($dt) {
+    if(property_exists($this, $dt)){
+      return $this->{$dt};
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
 }
 
-class DataFormat{
-  public $format_name;
-  public $format_value;
+class DataFormat {
+  private $format_name;
+  private $format_value;
+  public function __set($dt, $vl) {
+    if(property_exists($this, $dt)){
+      $this->{$dt} = $vl;
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
+
+  public function __get($dt) {
+    if(property_exists($this, $dt)){
+      return $this->{$dt};
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
 }
 
-class Dataset{
-  public $alternate_identifier = Array(); // String
-  public $titles = Array(); //Title
-  public $creator; // Agent
-  public $metadata_provider; // Contact 
-  public $associated_party; // Contact
-  public $pub_date; // String
-  public $language; // String
-  public $abstract; // String
-  public $keyword_set = Array(); //KeywordSet
-  public $aditional_info; // String
-  public $intellectualRights; // String
-  public $distribution; //:S
-  public $coverage; // Coverage
-  public $purpose; // String
-  public $contact; //Contact
-  public $methods = Array(); //Method
-  public $project; // Project
+class Dataset {
+  private $alternate_identifier = Array(); // String
+  private $title; //String
+  private $creator; // Agent
+  private $metadata_provider; // Contact 
+  private $associated_party; // Contact
+  private $pub_date; // String
+  private $language; // String
+  private $abstract; // String
+  private $keyword_set = Array(); //KeywordSet
+  private $additional_info; // String
+  private $intellectual_rights; // string
+  private $distribution; //:s
+  private $coverage; // Coverage
+  private $purpose; // String
+  private $contact; //Contact
+  private $methods = Array(); //Method
+  private $project; // Project
+
+  public function __set($dt, $vl) {
+    if(property_exists($this, $dt)){
+      $this->{$dt} = $vl;
+    }else{
+      throw new Exception("Undefined variable $dt: $dt");
+    }
+  }
+
+  public function __get($dt) {
+    if(property_exists($this, $dt)){
+      return $this->{$dt};
+    }else{
+      throw new Exception("Undefined variable $dt: $dt");
+    }
+  }
 }
 
 // -------------------------------------
 
-class Project{
-  public $title;
-  public $personnel = Array();
-  public $funding;
-  public $study_area_description;
-  public $design_description;
+class Project {
+  private $title;
+  private $personnel = Array();
+  private $funding;
+  private $study_area_description;
+  private $design_description;
+  public function __set($dt, $vl) {
+    if(property_exists($this, $dt)){
+      $this->{$dt} = $vl;
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
+
+  public function __get($dt) {
+    if(property_exists($this, $dt)){
+      return $this->{$dt};
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
 }
 
 
-class Method{
-  public $method_step;
-  public $sampling;
-  public $quality_control;
+class Method {
+  private $method_step;
+  private $sampling;
+  private $quality_control;
+  public function __set($dt, $vl) {
+    if(property_exists($this, $dt)){
+      $this->{$dt} = $vl;
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
+
+  public function __get($dt) {
+    if(property_exists($this, $dt)){
+      return $this->{$dt};
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
 }
 
-class Sampling{
-  public $study_extent;
-  public $description;
+class Sampling {
+  private $study_extent;
+  private $description;
+  public function __set($dt, $vl) {
+    if(property_exists($this, $dt)){
+      $this->{$dt} = $vl;
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
+
+  public function __get($dt) {
+    if(property_exists($this, $dt)){
+      return $this->{$dt};
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
 }
 
-class Coverage{}
+class Coverage {}
 
 class GeographicCoverage extends Coverage{
-  public $geographic_description;
-  public $bounding_box;
+  private $geographic_description;
+  private $bounding_box;
+  public function __set($dt, $vl) {
+    if(property_exists($this, $dt)){
+      $this->{$dt} = $vl;
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
+
+  public function __get($dt) {
+    if(property_exists($this, $dt)){
+      return $this->{$dt};
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
 }
 
 class TemporalCoverage extends Coverage{
 
-  public $single;
-  public $begin;
-  public $end;
+  private $single;
+  private $begin;
+  private $end;
+  public function __set($dt, $vl) {
+    if(property_exists($this, $dt)){
+      $this->{$dt} = $vl;
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
+
+  public function __get($dt) {
+    if(property_exists($this, $dt)){
+      return $this->{$dt};
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
 
 }
 
 class TaxonomicCoverage extends Coverage{
-  public $general_taxonomic_coverage;
-  public $taxon_rank_name;
-  public $taxon_rank_value;
-  public $common_name;
+  private $general_taxonomic_coverage;
+  private $taxon_rank_name;
+  private $taxon_rank_value;
+  private $common_name;
+
+  public function __set($dt, $vl) {
+    if(property_exists($this, $dt)){
+      $this->{$dt} = $vl;
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
+
+  public function __get($dt) {
+    if(property_exists($this, $dt)){
+      return $this->{$dt};
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
   
 }
 
-class TimeKeyword{
-  public $start;
-  public $end;
+class TimeKeyword {
+  private $start;
+  private $end;
+  public function __set($dt, $vl) {
+    if(property_exists($this, $dt)){
+      $this->{$dt} = $vl;
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
+
+  public function __get($dt) {
+    if(property_exists($this, $dt)){
+      return $this->{$dt};
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
 }
 
-class TaxonKeyword{
+class TaxonKeyword {
 
   private $taxon_rank_name;
   private $taxon_rank;
   private $common_name;
+  public function __set($dt, $vl) {
+    if(property_exists($this, $dt)){
+      $this->{$dt} = $vl;
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
+
+  public function __get($dt) {
+    if(property_exists($this, $dt)){
+      return $this->{$dt};
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
 }
 
-class KeywordSet{
-  public $keyword = Array();
-  public $thesaurus;
+class KeywordSet {
+  private $keyword = Array();
+  private $thesaurus;
+  public function __set($dt, $vl) {
+    if(property_exists($this, $dt)){
+      $this->{$dt} = $vl;
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
+
+  public function __get($dt) {
+    if(property_exists($this, $dt)){
+      return $this->{$dt};
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
 }
 
-class Agent{
-  public $given_name;
-  public $last_name;
-  public $organisation_name;
-  public $position_name;
-  public $address;
-  public $phone;
-  public $electronic_mail_address;
-  public $online_url;
-  public $role;
+class Agent {
+  private $given_name;
+  private $last_name;
+  private $organisation_name;
+  private $position_name;
+  private $address;
+  private $phone;
+  private $electronic_mail_address;
+  private $online_url;
+  private $role;
+  public function __set($dt, $vl) {
+    if(property_exists($this, $dt)){
+      $this->{$dt} = $vl;
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
+
+  public function __get($dt) {
+    if(property_exists($this, $dt)){
+      return $this->{$dt};
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
 }
 
-class Address{
-  public $delivery_point;
-  public $city;
-  public $administrative_area;
-  public $postal_code;
-  public $country;
+class Address {
+  private $delivery_point;
+  private $city;
+  private $administrative_area;
+  private $postal_code;
+  private $country;
+  public function __set($dt, $vl) {
+    if(property_exists($this, $dt)){
+      $this->{$dt} = $vl;
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
+
+  public function __get($dt) {
+    if(property_exists($this, $dt)){
+      return $this->{$dt};
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
 }
 
-class Title{
+class Title {
 
-  public $lang;
-  public $text;
+  private $lang;
+  private $text;
+  public function __set($dt, $vl) {
+    if(property_exists($this, $dt)){
+      $this->{$dt} = $vl;
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
+
+  public function __get($dt) {
+    if(property_exists($this, $dt)){
+      return $this->{$dt};
+    }else{
+      throw new Exception("Undefined variable $dt");
+    }
+  }
 }
 ?>

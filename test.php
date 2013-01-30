@@ -21,13 +21,13 @@ function test_open(){
   try{
     $dwca = new DwCA('examples/dwca-benin.zip');
     $dwca->open();
-    $core = $dwca->get_core();
+    $core = $dwca->core;
 
   }catch (Exception $ex){
     $core = false;
   }
 
-  test_result('DwCA::open ', ($core->get_location()  === 'occurrence.txt'));
+  test_result('DwCA::open ', ($core->location  === 'occurrence.txt'));
 }
 
 function test_get_records(){
@@ -36,7 +36,7 @@ function test_get_records(){
   try{
     $dwca = new DwCA('examples/dwca-eol.zip');
     $dwca->open();
-    $core = $dwca->get_core();
+    $core = $dwca->core;
     $rows = $dwca->get_records($core, 0, 50);
 
   }catch (Exception $ex){
@@ -53,7 +53,7 @@ function test_get_extensions(){
   try{
     $dwca = new DwCA('examples/dwca-eol.zip');
     $dwca->open();
-    $extensions = $dwca->get_extensions();
+    $extensions = $dwca->extensions;
 
   }catch (Exception $ex){
     $extensions = FALSE;
