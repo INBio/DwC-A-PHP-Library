@@ -82,6 +82,12 @@ class DwCA{
 
     $this->metadata = $eml;
 
+    // Create and config the parser
+    $parser = new ParserCSV();
+    $parser->setDelimiter($this->core->fields_terminated_by);
+    $parser->setColumnNames(array_values($this->core->fields));
+    $this->parser = $parser;
+
   }
 
   public function get_records(ArchiveFile $file, $start = 0, $limit = 50){
@@ -197,6 +203,7 @@ class DwCA{
 
     return $file;
   }
+
   public function __set($dt, $vl) {
     if(property_exists($this, $dt)){
       $this->{$dt} = $vl;
