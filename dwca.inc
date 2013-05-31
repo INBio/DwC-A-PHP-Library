@@ -38,7 +38,7 @@ class DwCA{
       throw new Exception("This is not a DwC-A formated file\n");
     }
 
-    if( ! $zip->locateName(Constants::META_FILENAME)){
+    if( $zip->locateName(Constants::META_FILENAME) === FALSE){
       throw new Exception("This is not a recognized DwC-A formated file: ".Constants::META_FILENAME." mising\n");
     }
 
