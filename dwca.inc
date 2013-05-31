@@ -1,9 +1,37 @@
 <?php
 
-include_once('includes/archive_file.inc');
-include_once('includes/constants.inc');
-include_once('includes/metadata.inc');
+/**
+  
+  DwCLibrary was build to open and query dwc files used by the GBIF Network
+
+  by Aurelio Sanabria INBio (Costa Rica).
+  
+  Was based on the following resources:
+
+      GBIF (2011). Darwin Core Archive Format, Reference Guide to the
+        XML Descriptor File, April 2011, (contributed by Döring, M., Robertson, T., Remsen, D.),
+        Copenhagen: Global Biodiversity Information Facility,16 pp.
+
+      GBIF (2010). Darwin Core Archives – How-to Guide, version 1, released on 1 March 2011,
+        (contributed by Remsen D, Braak, K, Döring M, Robertson, T), Copenhagen: Global
+        Biodiversity Information Facility, 21 pp.
+
+      GBIF (2010). Darwin Core Quick Reference Guide, version 1.3, released on 10 Mar 2012,
+        (contributed by Wieczorek , J., De Giovanni , R., Vieglais , D. Remsen D.P., Döring, M,
+        Robertson, T.), Copenhagen: Global Biodiversity Information Facility, 41 pp,.
+
+      And the Darwin Core Text Guide accessible online at:
+        http://rs.tdwg.org/dwc/terms/guides/text/index.htm
+ */
+
+
+// DWC realted
+include_once('includes/meta.inc');
+include_once('includes/gbif_eml.inc');
+
+// Utils
 include_once('includes/eml_utils.inc');
+include_once('includes/constants.inc');
 include_once('includes/parser.inc');
 
 
@@ -13,52 +41,17 @@ include_once('includes/parser.inc');
  */
 class DwCA{
 
+
+  private $case = -1;
+
+  private $meta = new Archive();
+  private $gbif_eml;
+
   private $dir;
-  private $core;
-  private $parser;
   private $archive;
-  private $extensions;
-  private $metadata;
 
-  /**
-   * @param $term
-   *   An array or a stdClass object that is a Drupal taxonomy term. Can include
-   *   geo extensions.
-   */
-  public function __construct($path) {
 
-    // DwC-A format validation
-    $zip = new zipArchive();
 
-    if (! $zip->open($path)){
-      throw new Exception("Failed to open zip file\n");
-    }
-
-    if ( $zip->numFiles < 3){
-      throw new Exception("This is not a DwC-A formated file\n");
-    }
-
-    if( $zip->locateName(Constants::META_FILENAME) === FALSE){
-      throw new Exception("This is not a recognized DwC-A formated file: ".Constants::META_FILENAME." mising\n");
-    }
-
-    // if everything works, the extraction proceed
-    $status = TRUE;
-    $hash   = hash_file('md5', $path);
-    $dir    = dirname($path)."/".$hash;
-
-    if(!file_exists($dir)){
-
-      $status = $zip->extractTo($dir);
-
-      if ( ! $status ){
-        print "Error extracting $path to $dir";
-        throw new Exception();
-      }
-    }
-    
-    $this->dir = $dir;
-  }
 
   public function open(){
 
@@ -204,6 +197,39 @@ class DwCA{
     return $file;
   }
 
+
+  /**
+   * @param $term
+   *   An array or a stdClass object that is a Drupal taxonomy term. Can include
+   *   geo extensions.
+   */
+  public function __construct($path) {
+
+    // DwC-A format validation
+    $zip = new zipArchive();
+
+    if (! $zip->open($path)){
+      throw new Exception("Failed to open zip file\n");
+    }
+
+    // if everything works, the extraction proceed
+    $status = TRUE;
+    $hash   = hash_file('md5', $path);
+    $dir    = dirname($path)."/".$hash;
+
+    if(!file_exists($dir)){
+
+      $status = $zip->extractTo($dir);
+
+      if ( ! $status ){
+        print "Error extracting $path to $dir";
+        throw new Exception();
+      }
+    }
+    
+    $this->dir = $dir;
+  }
+
   public function __set($dt, $vl) {
     if(property_exists($this, $dt)){
       $this->{$dt} = $vl;
@@ -218,5 +244,93 @@ class DwCA{
     }else{
       throw new Exception("Undefined variables");
     }
+  }
+
+  /**
+    Case 1:
+
+    A metafile is not required if there is a single core data file where the first
+    line provides the names of the Darwin Core terms represented in
+    the published data. The column labels must exactly match the
+    supported Darwin Core terms.
+
+    If the core data file does not contain such a “header row” then the
+    columns names must be stored in a metafile.
+   */
+  private function __validate_case_1(){
+    $result = FALSE;
+
+    if ( $zip->numFiles == 1){
+      $result = TRUE;
+      trigger_error("This DwC-A with a core file only\n", E_NOTICE);
+
+      // Set the type of the file to help in the processing.
+      $this->case = 1;
+    }
+
+
+    return $result;
+  }
+
+  /**
+    Case 2:
+    A metafile is not required if an archive contains a resource metadata
+    document that is named “EML.xml” If the resource metadata document
+    is named other than “EML.xml,” a metafile is required. The
+    requirements are based on the same conditions as above concerning the
+    presence/absence of a ‘header row’ in the core data file.
+   */
+  private function __validate_case_2(){
+
+    $result = FALSE;
+
+    if ( $zip->numFiles == 2){
+      if( $zip->locateName(Constants::EML_FILENAME)){
+        $result = TRUE;
+        trigger_error("This DwC-A with a EML.xml and core file\n", E_NOTICE);
+
+        // Set the type of the file to help in the processing.
+        $this->case = 2;
+      }
+    }
+
+    return $result;
+  }
+
+  /**
+    Case 3:
+    A metafile is required when one or more extensions are used to extend
+    the data published in the core data file. The metafile provides the map
+    that links the two data files together.
+   */ 
+  private function __validate_case_3(){
+
+    $result = FALSE;
+
+    if ( $zip->numFiles >= 3 ){
+      if( $zip->locateName(Constants::META_FILENAME, ZipArchive::FL_NOCASE|ZipArchive::FL_NODIR)){
+
+        $result = TRUE;
+        trigger_error("This a Full DwC-A\n", E_NOTICE);
+
+        // Set the type of the file to help in the processing.
+        $this->case = 3;
+      }
+    }
+
+
+    return $result;
+  }
+
+
+  /**
+   * Makes a shallow validation of the number of files in the darwin core archive.
+   */
+  public function validate(){
+
+    $result = __validate_case_1() || __validate_case_2() || __validate_case_3();
+
+    return $result;
+
   }
 }
