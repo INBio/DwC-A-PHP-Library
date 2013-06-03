@@ -51,20 +51,18 @@ class Files{
 class Core{
 
   // Atributes
-  private $row_type;
-  private $fields_terminated_by;
-  private $lines_terminated_by;
-  private $fields_enclosed_by;
-  private $encoding;
-  private $ignore_header_lines;
-  private $date_format;
+  private $row_type = 'http://rs.tdwg.org/dwc/xsd/simpledarwincore/SimpleDarwinRecord';
+  private $fields_terminated_by = ',';
+  private $lines_terminated_by  = '\n';
+  private $fields_enclosed_by   = '"';
+  private $encoding             = 'UTF-8';
+  private $ignore_header_lines  = 0;
+  private $date_format          = 'YYYY-MM-DD';
 
   // Elements
-  private $files = new Array();
-  private $id = 0; # indicates the index of the id
-  // only for extensions
-  private $core_id = 0; # indicates the index of the id that is linked to the core.
-  private $fields = new Array();
+  private $files  = NULL;
+  private $id     = NULL; # indicates the index of the id
+  private $fields = NULL;
 
   public function __set($dt, $vl) {
     if(property_exists($this, $dt)){
@@ -78,25 +76,25 @@ class Core{
     if(property_exists($this, $dt)){
       return $this->{$dt};
     }else{
-      throw new Exception("Undefined variables");
+      throw new Exception("Undefined variables ".$dt);
     }
   }
 }
 
 class Extension{
   // Atributes
-  private $row_type;
-  private $fields_terminated_by;
-  private $lines_terminated_by;
-  private $fields_enclosed_by;
-  private $encoding;
-  private $ignore_header_lines;
-  private $date_format;
+  private $row_type = 'http://rs.tdwg.org/dwc/xsd/simpledarwincore/SimpleDarwinRecord';
+  private $fields_terminated_by = ',';
+  private $lines_terminated_by  = '\n';
+  private $fields_enclosed_by   = '"';
+  private $encoding             = 'UTF-8';
+  private $ignore_header_lines  = 0;
+  private $date_format          = 'YYYY-MM-DD';
 
   // Elements
-  private $files = new Array();
-  private $core_id = 0; # indicates the index of the id that is linked to the core.
-  private $fields = new Array();
+  private $files    = NULL;
+  private $core_id  = NULL; # indicates the index of the id that is linked to the core.
+  private $fields   = NULL;
 
   public function __set($dt, $vl) {
     if(property_exists($this, $dt)){
@@ -118,15 +116,12 @@ class Extension{
 
 class Archive{
 
-
   // Metadata
-  $metadata = '';
+  private $metadata = NULL;
 
   // Files
-  private $core = new Core();
-  private $extensions = Array(); 
-
-
+  private $core = NULL;
+  private $extensions = NULL; 
 
   public function __set($dt, $vl) {
     if(property_exists($this, $dt)){

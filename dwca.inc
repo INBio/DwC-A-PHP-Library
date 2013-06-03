@@ -20,6 +20,14 @@
         (contributed by Wieczorek , J., De Giovanni , R., Vieglais , D. Remsen D.P., Döring, M,
         Robertson, T.), Copenhagen: Global Biodiversity Information Facility, 41 pp,.
 
+      GBIF (2011). GBIF Metadata Profile – How-to Guide, (contributed by Ó
+        Tuama, Eamonn, Braak, K. Remsen, D.), Copenhagen: Global Biodiversity Information
+        Facility, 11 pp
+
+      GBIF (2011). GBIF Metadata Profile, Reference Guide, Feb 2011,
+        (contributed by O Tuama, E., Braak, K., Copenhagen: Global Biodiversity Information
+        Facility,19 pp.
+
       And the Darwin Core Text Guide accessible online at:
         http://rs.tdwg.org/dwc/terms/guides/text/index.htm
  */
@@ -44,49 +52,56 @@ class DwCA{
 
   private $case = -1;
 
-  private $meta = new Archive();
+  private $meta;
   private $gbif_eml;
 
   private $dir;
-  private $archive;
+  private $zip;
 
 
 
 
-  public function open(){
+  private function __open_core_with_headers(){
 
-    // Read the xml by using simplexml library.
-    $xml = simplexml_load_file($this->dir."/".Constants::META_FILENAME);
+    $core = new Core();
 
-    //load the info from the CORE file
-    $file = $this->generate_archive_file_from_xml($xml->core);
-    $this->core = $file;
+    $index = 0;
 
-    //load the info from the EXTENSIONS file
-    foreach($xml->extension as $extension){
-      $file = $this->generate_archive_file_from_xml($extension);
-      $this->extensions[] = $file;
+    if( "xml" === substr($this->zip->getNameIndex(0), -3) ){
+      $index = 1;
     }
 
-    // set the name of the metadata file
-    $attributes = $xml->attributes();
-    $eml = new EMLDocument();
-    $eml->filename = (string) $attributes['metadata'];
+    // get the only existing file
+    $file_in_zip = $this->zip->getNameIndex($index);
 
-    $this->metadata = $eml;
+    // complete the full path of the file
+    $filepath = $this->dir."/".$file_in_zip;
 
-    // Create and config the parser
-    $parser = new ParserCSV();
-    $parser->setDelimiter($this->core->fields_terminated_by);
-    $parser->setColumnNames(array_values($this->core->fields));
-    $this->parser = $parser;
+    $core->files = Array($filepath);
 
+
+    $file = fopen($filepath, "r");
+
+    // get the first line as headers
+    $core->fields = fgetcsv( $file, 0, $core->fields_terminated_by,
+      $core->fields_enclosed_by);
+
+
+    $core->ignore_header_lines = 1; # The line of headers
+
+    // close the file \o/ 
+    //                 |
+    //                /\ 
+    fclose($file);
+
+    return $core;
   }
 
-  public function get_records(ArchiveFile $file, $start = 0, $limit = 50){
+  public function get_records($start = 0, $limit = 50){
 
-    $status = TRUE;
-    $filename = $this->dir."/".$file->location;
+    //always choose the first file of the list of locations.
+    $file = $this->meta->core;
+    $filename = $file->files[0];
 
     if(!file_exists($filename)){
       throw new Exception("$filename: not found. Problably due to an error while unziping the dwca file");
@@ -96,16 +111,16 @@ class DwCA{
     $parser = new ParserCSV();
     $parser->setDelimiter($file->fields_terminated_by);
     $parser->setColumnNames(array_values($file->fields));
-    $this->parser = $parser;
 
     // parsing occurrence.txt file looking for occurrences
     $iterator = new ParserCSVIterator($filename);
-    $rows = $this->_parseItems($parser, $iterator, $start, $limit, $file->defaults);
+    $rows = $this->_parseItems($parser, $iterator, $start, $limit, array());
 
     return $rows;
   }
 
   /**
+   * TODO: Refactoring  
    * Return an array with a subset of the metadata contained in the eml.xml file
    * @return
    *  an array with the metadata in the format: array( provider= , project=, ...);
@@ -143,42 +158,59 @@ class DwCA{
    *   An array of rows of the CSV keyed by the column names previously set
    */
   private function _parseItems(ParserCSV $parser, ParserCSVIterator $iterator, $start = 0, $limit = 0, $defaults = Array()) {
+
     $parser->setLineLimit($limit);
     $parser->setStartByte($start);
     $rows = $parser->parse($iterator, $defaults);
     return $rows;
   }
 
-  private function generate_archive_file_from_xml($xml_archive_file){
+  private function __from_xml_to_core_file($xml_core_element){
 
-    $attributes = $xml_archive_file->attributes();
-    $file = new ArchiveFile();
+    $attributes = $xml_core_element->attributes();
+    $file = new Core();
 
+    //process the attributes
     $file->fields_terminated_by = stripcslashes((string) $attributes['fieldsTerminatedBy'] );
     $file->fields_enclosed_by   = stripcslashes((string) $attributes['fieldsEnclosedBy'] );
     $file->lines_terminated_by  = stripcslashes((string) $attributes['linesTerminatedBy'] );
     $file->encoding             = (string) $attributes['encoding'];
     $file->row_type             = (string) $attributes['rowType'];
-    $file->ignoreheader_lines   = (string) $attributes['ignoreHeader_lines'];
-    $file->location             = (string) $xml_archive_file->files->location;
+    $file->ignore_header_lines   = (string) $attributes['ignoreHeaderLines'];
     $file->date_format          = 'DD/MM/YYYY';
 
 
-    $id_attributes = FALSE; 
+    // locations =========================================
+    $locations = $xml_core_element->files->location;
+    $files = array();
 
-    // Get the core mappings and configuration
-    if(isset($xml_archive_file->id)){
-      $id_attributes = $xml_archive_file->id->attributes();
-    }else{
-      // The standard uses diferent element names for the id's if present
-      // in the core file or in the extensions files
-      $id_attributes = $xml_archive_file->coreid->attributes();
+    // TODO: Falta agregar el fonder en el que esta el archivo.
+    foreach ( $locations as $location){
+
+      $index =  $this->zip->locateName($location, ZipArchive::FL_NOCASE|ZipArchive::FL_NODIR);
+      $real_location = $this->zip->getNameIndex($index);
+
+      $files[] = $this->dir.'/'.(String)$real_location;
     }
+     
+    $file->files = $files;
+    // ===================================================
 
-    $fields[ (string) $id_attributes['index'] ] ='id';
-    $defaults = Array();
+    $fields = array();
+    // TODO: use this defaults
+    $defaults = array();
 
-    foreach($xml_archive_file->field as $field ){
+    // id ================================================
+    // Get the core mappings and configuration
+    if(isset($xml_core_element->id)){
+      $id_attributes = $xml_core_element->id->attributes();
+      $fields[ (string) $id_attributes['index'] ] ='id';
+    }
+    // ===================================================
+
+    // fields ======((====================================
+
+    foreach($xml_core_element->field as $field ){
       $field_attributes = $field->attributes();
       $index = (string) $field_attributes['index'];
       $term = (string) $field_attributes['term'];
@@ -192,16 +224,93 @@ class DwCA{
     }
 
     $file->fields = $fields;
-    $file->defaults = $defaults;
+
+    // ===================================================
 
     return $file;
   }
 
+  private function __from_xml_to_extensions_array($xml_extension_elements){
+
+    $extensions = array();
+
+    foreach( $xml_extension_elements as $xml_extension_element){
+
+      $file = new Extension();
+      $attributes = $xml_extension_element->attributes();
+
+      //process the attributes
+      $file->fields_terminated_by = stripcslashes((string) $attributes['fieldsTerminatedBy'] );
+      $file->fields_enclosed_by   = stripcslashes((string) $attributes['fieldsEnclosedBy'] );
+      $file->lines_terminated_by  = stripcslashes((string) $attributes['linesTerminatedBy'] );
+      $file->encoding             = (string) $attributes['encoding'];
+      $file->row_type             = (string) $attributes['rowType'];
+      $file->ignore_header_lines   = (string) $attributes['ignoreHeaderLines'];
+      $file->date_format          = 'DD/MM/YYYY';
+
+
+      // locations =========================================
+      $locations = $xml_extension_element->files->location;
+      $files = array();
+
+      foreach ( $locations as $location){
+        $files[] = (String)$location;
+      }
+
+      $file->files = $files;
+      // ===================================================
+
+      $fields = array();
+      // TODO: use this defaults
+      $defaults = array();
+
+      // id ================================================
+      // Get the core mappings and configuration
+      if(isset($xml_extension_element->coreid)){
+        $id_attributes = $xml_extension_element->coreid->attributes();
+        $fields[ (string) $id_attributes['index'] ] ='id';
+      }
+      // ===================================================
+
+      // fields ======((====================================
+
+      foreach($xml_extension_element->field as $field ){
+        $field_attributes = $field->attributes();
+        $index = (string) $field_attributes['index'];
+        $term = (string) $field_attributes['term'];
+
+        if( empty($index) ){
+          $value = (string) $field_attributes['default'];
+          $defaults[$term] = $value;
+        }else{
+          $fields[$index] = $term;
+        }
+      }
+
+      $file->fields = $fields;
+
+      // ===================================================
+      $extensions[] = $file;
+    }
+
+    return $extensions;
+  }
+
+  private function __metaxml_file_to_xml(){
+    $index = $this->zip->locateName(Constants::META_FILENAME, ZipArchive::FL_NOCASE|ZipArchive::FL_NODIR);
+    $file_in_zip = $this->zip->getNameIndex($index); 
+
+    $file_path = $this->dir."/".$file_in_zip;
+
+    // Read the xml by using simplexml library.
+    $xml = simplexml_load_file($file_path);
+
+    return $xml;
+  }
 
   /**
-   * @param $term
-   *   An array or a stdClass object that is a Drupal taxonomy term. Can include
-   *   geo extensions.
+   * @param $path
+   *    the path of the file
    */
   public function __construct($path) {
 
@@ -222,12 +331,13 @@ class DwCA{
       $status = $zip->extractTo($dir);
 
       if ( ! $status ){
-        print "Error extracting $path to $dir";
-        throw new Exception();
+        trigger_error("Error extracting $path to $dir", E_ERROR);
       }
     }
     
     $this->dir = $dir;
+    $this->zip = $zip;
+
   }
 
   public function __set($dt, $vl) {
@@ -260,9 +370,8 @@ class DwCA{
   private function __validate_case_1(){
     $result = FALSE;
 
-    if ( $zip->numFiles == 1){
+    if ( $this->zip->numFiles == 1){
       $result = TRUE;
-      trigger_error("This DwC-A with a core file only\n", E_NOTICE);
 
       // Set the type of the file to help in the processing.
       $this->case = 1;
@@ -284,15 +393,18 @@ class DwCA{
 
     $result = FALSE;
 
-    if ( $zip->numFiles == 2){
-      if( $zip->locateName(Constants::EML_FILENAME)){
+    if ( $this->zip->numFiles == 2){
+
+      $result = $this->zip->locateName(Constants::EML_FILENAME, ZipArchive::FL_NOCASE|ZipArchive::FL_NODIR);
+
+      if( FALSE !== $this->zip->locateName(Constants::EML_FILENAME, ZipArchive::FL_NOCASE|ZipArchive::FL_NODIR) ){
         $result = TRUE;
-        trigger_error("This DwC-A with a EML.xml and core file\n", E_NOTICE);
 
         // Set the type of the file to help in the processing.
         $this->case = 2;
       }
     }
+
 
     return $result;
   }
@@ -307,11 +419,9 @@ class DwCA{
 
     $result = FALSE;
 
-    if ( $zip->numFiles >= 3 ){
-      if( $zip->locateName(Constants::META_FILENAME, ZipArchive::FL_NOCASE|ZipArchive::FL_NODIR)){
-
+    if ( $this->zip->numFiles >= 3 ){
+      if( FALSE !== $this->zip->locateName(Constants::META_FILENAME, ZipArchive::FL_NOCASE|ZipArchive::FL_NODIR)){
         $result = TRUE;
-        trigger_error("This a Full DwC-A\n", E_NOTICE);
 
         // Set the type of the file to help in the processing.
         $this->case = 3;
@@ -328,9 +438,56 @@ class DwCA{
    */
   public function validate(){
 
-    $result = __validate_case_1() || __validate_case_2() || __validate_case_3();
+    $seems_valid = $this->__validate_case_1() || $this->__validate_case_2() || $this->__validate_case_3();
 
-    return $result;
+    if ($seems_valid == FALSE){
+        throw new Exception("The file supplied seems to be unvalid"); 
+    }
 
+    return $seems_valid;
   }
+
+  public function open(){
+
+    if( !$this->validate() ){
+      return;
+    }
+
+    $archive = new Archive();
+    $core = new Core();
+    $extensions = array();
+
+
+    switch($this->case){
+        
+      case 1: # only core file
+        $core = $this->__open_core_with_headers();
+        break;
+
+      case 2: # core file and EML.xml file
+        $core = $this->__open_core_with_headers();
+        break;
+        // the metadata is processed in the method DWCA::get_metadata
+
+      case 3: # with meta.xml file
+        // Read the xml by using simplexml library.
+        $xml = $this->__metaxml_file_to_xml();
+
+        //load the info from the CORE file
+        $core = $this->__from_xml_to_core_file($xml->core);
+        //load the info from the EXTENSIONS file
+        $extensions = $this->__from_xml_to_extensions_array($xml->extension);
+        break;
+
+      case -1:
+        print "something went terribly wrong, verify your imput file and try again";
+        break;
+    }
+
+
+    $archive->extensions = $extensions;
+    $archive->core = $core;
+    $this->meta = $archive;
+  }
+
 }

@@ -9,6 +9,7 @@ function test_open_dwca_file(){
     $dwca = new DwCA('examples/dwca-eol.zip');
   }catch (Exception $ex){
     $dwca = FALSE;
+    print $ex;
   }
 
   test_result('Open DwC-A file', ($dwca != FALSE));
@@ -25,6 +26,7 @@ function test_open(){
 
   }catch (Exception $ex){
     $core = false;
+    print $ex;
   }
 
   test_result('DwCA::open ', ($core->location  === 'occurrence.txt'));
@@ -41,6 +43,7 @@ function test_get_records(){
 
   }catch (Exception $ex){
     $rows = FALSE;
+    print $ex;
   }
 
   test_result('Test get records from archive file', (count($rows) == 50));
@@ -57,6 +60,7 @@ function test_get_extensions(){
 
   }catch (Exception $ex){
     $extensions = FALSE;
+    print $ex;
   }
 
   test_result('Test get extensions', (count($extensions) == 4));
