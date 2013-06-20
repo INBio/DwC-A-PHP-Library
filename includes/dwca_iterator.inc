@@ -112,22 +112,15 @@ class DwCAIterator implements Iterator {
 
     foreach ( array_keys($this->parsers) as $key ){
 
-      print $key."\n";
-
       do{
-        print "Current line: ".$this->status[$key]."\n";
         $row = $this->__parseItems($this->parsers[$key], $this->iterators[$key], $this->status[$key], 1);
+
         if ( empty($row)){
           break;
         }
 
-        print "coreid: ".$row[0]['coreid']." id: ".$first_core_row[0]['id']."\n";
 
         if( $row[0]['coreid'] === $first_core_row[0]['id'] ){
-
-          if( $key === "http://rs.gbif.org/terms/1.0/Image" && isset($row[0]['http://purl.org/dc/terms/identifier'])){
-            print $row[0]['http://purl.org/dc/terms/identifier']."\n";
-          }
 
           $new_record->data[$key][] = $row; 
           $this->status[$key] = $this->iterators[$key]->currentPos();
