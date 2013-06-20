@@ -35,12 +35,13 @@
 
 // DWC realted
 include_once('includes/meta.inc');
-include_once('includes/gbif_eml.inc');
+include_once('includes/gmp.inc');
 
 // Utils
 include_once('includes/eml_utils.inc');
 include_once('includes/constants.inc');
 include_once('includes/parser.inc');
+include_once('includes/dwca_iterator.inc');
 
 
 /**
@@ -57,9 +58,6 @@ class DwCA{
 
   private $dir;
   private $zip;
-
-
-
 
   private function __open_core_with_headers(){
 
@@ -97,6 +95,9 @@ class DwCA{
     return $core;
   }
 
+  /**
+   * Return the records from the core file only
+   */
   public function get_records($start = 0, $limit = 50){
 
     //always choose the first file of the list of locations.
@@ -117,6 +118,26 @@ class DwCA{
     $rows = $this->_parseItems($parser, $iterator, $start, $limit, array());
 
     return $rows;
+  }
+
+  /**
+   * Return the records from the core file only
+   */
+  public function get_full_records($start = 0, $limit = 50){
+
+    //always choose the first file of the list of locations.
+    $file = $this->meta->core;
+    $filename = $file->files[0];
+
+    if(!file_exists($filename)){
+      throw new Exception("$filename: not found. Problably due to an error while unziping the dwca file");
+    }
+
+    // parsing occurrence.txt file looking for occurrences
+    $iterator = new DWCAIterator($this->meta);
+    $iterator->next();
+
+    #return $rows;
   }
 
   /**
@@ -253,8 +274,13 @@ class DwCA{
       $locations = $xml_extension_element->files->location;
       $files = array();
 
+      // TODO: Falta agregar el fonder en el que esta el archivo.
       foreach ( $locations as $location){
-        $files[] = (String)$location;
+
+        $index =  $this->zip->locateName($location, ZipArchive::FL_NOCASE|ZipArchive::FL_NODIR);
+        $real_location = $this->zip->getNameIndex($index);
+
+        $files[] = $this->dir.'/'.(String)$real_location;
       }
 
       $file->files = $files;
@@ -268,7 +294,7 @@ class DwCA{
       // Get the core mappings and configuration
       if(isset($xml_extension_element->coreid)){
         $id_attributes = $xml_extension_element->coreid->attributes();
-        $fields[ (string) $id_attributes['index'] ] ='id';
+        $fields[ (string) $id_attributes['index'] ] ='coreid';
       }
       // ===================================================
 
@@ -489,5 +515,5 @@ class DwCA{
     $archive->core = $core;
     $this->meta = $archive;
   }
-
 }
+

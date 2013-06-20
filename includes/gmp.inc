@@ -121,7 +121,7 @@ class Project {
   }
 }
 
-cass PeopleAndOrganizations{
+class PeopleAndOrganizations{
   private $given_name;
   private $sur_name;
   private $organisation_name;
