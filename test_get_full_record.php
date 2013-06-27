@@ -60,6 +60,8 @@ function test_full_records($file){
     print $ex;
   }
 
+  print "Counting rows: ".count($rows)."\n";
+
   test_result('Test full records', count($rows) === 10 );
 }
 
@@ -70,7 +72,9 @@ $dh = opendir($dir);
 $functions = Array('test_full_records');
 #$functions = Array('test_get_records', 'test_list_extensions');
 
-test_full_records('examples/eol.zip');
+#test_full_records('examples/eol.zip');
+#test_full_records('examples/plic-4-images.zip');
+test_full_records('examples/plic-3-registers-8-images.zip');
 
 /*
   while (false !== ($file = readdir($dh))) {
