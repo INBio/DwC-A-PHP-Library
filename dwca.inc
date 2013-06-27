@@ -133,11 +133,23 @@ class DwCA{
       throw new Exception("$filename: not found. Problably due to an error while unziping the dwca file");
     }
 
+    $rows = Array();
+    $row = NULL;
+
     // parsing occurrence.txt file looking for occurrences
     $iterator = new DWCAIterator($this->meta);
-    $iterator->next();
+    for ( $i = 0; $i < $limit ; $i++ ){
+      $iterator->next();
+      $row = $iterator->current();
 
-    #return $rows;
+      if (empty($row)){
+        break;
+      }else{
+        $rows[] = $iterator->current();
+      }
+    }
+
+    return $rows;
   }
 
   /**

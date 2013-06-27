@@ -106,6 +106,7 @@ class DwCAIterator implements Iterator {
     $first_core_row = $this->__parseItems($this->core_parser, $this->core_iterator, $this->status['core'], 1);
     $this->status['core'] = $this->core_iterator->currentPos();
 
+
     $new_record->data['core'] = $first_core_row; 
 
     $row = array();
@@ -115,10 +116,9 @@ class DwCAIterator implements Iterator {
       do{
         $row = $this->__parseItems($this->parsers[$key], $this->iterators[$key], $this->status[$key], 1);
 
-        if ( empty($row)){
+        if ( empty($row) || empty($first_core_row) ){
           break;
         }
-
 
         if( $row[0]['coreid'] === $first_core_row[0]['id'] ){
 
@@ -131,8 +131,11 @@ class DwCAIterator implements Iterator {
       }while(true);
     }
 
-    var_dump($new_record);
-    $this->current = $new_record;
+    if(empty($new_record->data['core'])){ 
+      $this->current = NULL;
+    }else{
+      $this->current = $new_record;
+    }
   }
 
   public function valid() {
