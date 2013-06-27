@@ -63,11 +63,14 @@ class ParserCSVIterator implements Iterator {
  * Functionality to parse CSV files into a two dimensional array.
  */
 class ParserCSV {
-  private $delimiter;
   private $skipFirstLine;
   private $columnNames;
+
+  private $delimiter;
+
   private $timeout;
   private $timeoutReached;
+
   private $startByte;
   private $lineLimit;
   private $lastLinePos;
@@ -182,7 +185,7 @@ class ParserCSV {
    * @return
    *   Two dimensional array that contains the data in the CSV file.
    */
-  public function parse(Iterator $lineIterator) {
+  public function parse(Iterator $lineIterator, $defaults = Array()) {
     $skipLine = $this->skipFirstLine;
     $rows = array();
 
@@ -206,90 +209,8 @@ class ParserCSV {
         continue;
       }
 
-      // The actual parser. explode() is unfortunately not suitable because the
-      // delimiter might be located inside a quoted field, and that would break
-      // the field and/or require additional effort to re-join the fields.
-      $quoted = FALSE;
-      $currentIndex = 0;
-      $currentField = '';
-      $fields = array();
+      $fields = str_getcsv($line, $this->delimiter);
 
-      while ($currentIndex <= strlen($line)) {
-        if ($quoted) {
-          $nextQuoteIndex = strpos($line, '"', $currentIndex);
-
-          if ($nextQuoteIndex === FALSE) {
-            // There's a line break before the quote is closed, so fetch the
-            // next line and start from there.
-            $currentField .= substr($line, $currentIndex);
-            $lineIterator->next();
-
-            if (!$lineIterator->valid()) {
-              // Whoa, an unclosed quote! Well whatever, let's just ignore
-              // that shortcoming and record it nevertheless.
-              $fields[] = $currentField;
-              break;
-            }
-            // Ok, so, on with fetching the next line, as mentioned above.
-            $currentField .= "\n";
-            $line = trim($lineIterator->current(), "\r\n");
-            $currentIndex = 0;
-            continue;
-          }
-
-          // There's actually another quote in this line...
-          // find out whether it's escaped or not.
-          $currentField .= substr($line, $currentIndex, $nextQuoteIndex - $currentIndex);
-
-          if (isset($line[$nextQuoteIndex + 1]) && $line[$nextQuoteIndex + 1] === '"') {
-            // Escaped quote, add a single one to the field and proceed quoted.
-            $currentField .= '"';
-            $currentIndex = $nextQuoteIndex + 2;
-          }
-          else {
-            // End of the quoted section, close the quote and let the
-            // $quoted == FALSE block finalize the field.
-            $quoted = FALSE;
-            $currentIndex = $nextQuoteIndex + 1;
-          }
-        }
-        else { // $quoted == FALSE
-          // First, let's find out where the next character of interest is.
-          $nextQuoteIndex = strpos($line, '"', $currentIndex);
-          $nextDelimiterIndex = strpos($line, $this->delimiter, $currentIndex);
-
-          if ($nextQuoteIndex === FALSE) {
-            $nextIndex = $nextDelimiterIndex;
-          }
-          elseif ($nextDelimiterIndex === FALSE) {
-            $nextIndex = $nextQuoteIndex;
-          }
-          else {
-            $nextIndex = min($nextQuoteIndex, $nextDelimiterIndex);
-          }
-
-          if ($nextIndex === FALSE) {
-            // This line is done, add the rest of it as last field.
-            $currentField .= substr($line, $currentIndex);
-            $fields[] = $currentField;
-            break;
-          }
-          elseif ($line[$nextIndex] === $this->delimiter[0]) {
-            $length = ($nextIndex + strlen($this->delimiter) - 1) - $currentIndex;
-            $currentField .= substr($line, $currentIndex, $length);
-            $fields[] = $currentField;
-            $currentField = '';
-            $currentIndex += $length + 1;
-            // Continue with the next field.
-          }
-          else { // $line[$nextIndex] == '"'
-            $quoted = TRUE;
-            $currentField .= substr($line, $currentIndex, $nextIndex - $currentIndex);
-            $currentIndex = $nextIndex + 1;
-            // Continue this field in the $quoted == TRUE block.
-          }
-        }
-      }
       // End of CSV parser. We've now got all the fields of the line as strings
       // in the $fields array.
 
@@ -301,6 +222,10 @@ class ParserCSV {
         foreach ($this->columnNames as $columnName) {
           $field = array_shift($fields);
           $row[$columnName] = isset($field) ? $field : '';
+        }
+        // add the default fixed values
+        foreach ( $defaults as $term => $value) {
+          $row[$term] = $value;
         }
       }
       $rows[] = $row;
@@ -318,6 +243,7 @@ class ParserCSV {
         break;
       }
     }
+
     return $rows;
   }
 }
