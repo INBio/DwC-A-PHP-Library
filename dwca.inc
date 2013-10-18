@@ -34,7 +34,10 @@
 
 
 // DWC realted
+// meta.xml related
 include_once('includes/meta.inc');
+
+// GBIF Metadata Profile objects
 include_once('includes/gmp.inc');
 
 // Utils
@@ -59,6 +62,10 @@ class DwCA{
   private $dir;
   private $zip;
 
+  /**
+   * Open the core file with the headers in case the dwca file is just a 
+   * single csv file with headers.
+   */
   private function __open_core_with_headers(){
 
     $core = new Core();
@@ -94,7 +101,7 @@ class DwCA{
   }
 
   /**
-   * Return the records from the core file only
+   * Return the records from the core file only whitout the extensions
    */
   public function get_records($start = 0, $limit = 50){
 
@@ -394,7 +401,6 @@ class DwCA{
 
   /**
     Case 1:
-
     A metafile is not required if there is a single core data file where the first
     line provides the names of the Darwin Core terms represented in
     the published data. The column labels must exactly match the
@@ -483,6 +489,10 @@ class DwCA{
     return $seems_valid;
   }
 
+  /**
+   * Open the DwC-A and validate it depending in the Cases specified by the DwC-A
+   * specification
+   */
   public function open(){
 
     if( !$this->validate() ){
