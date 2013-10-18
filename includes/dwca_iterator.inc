@@ -2,10 +2,12 @@
 
 include_once('parser.inc');
 
+/**
+ * Store every record retrieved from the DwC-A file.
+ */
 class DWCARecord{
 
   public $data = Array();
-
 
   public function __construct() {
     $this->data = Array();
@@ -29,6 +31,9 @@ class DWCARecord{
 }
 
 
+/**
+ * Iterate over a DwC-A file and keep track of the current line
+ */
 class DwCAIterator implements Iterator {
 
   private $meta;
