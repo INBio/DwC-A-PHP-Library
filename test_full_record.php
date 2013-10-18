@@ -62,7 +62,7 @@ function test_full_records($file){
 
   print "Counting rows: ".count($rows)."\n";
 
-  test_result('Test full records', count($rows) === 10 );
+  test_result('Test full records', count($rows) === 3 );
 }
 
 
