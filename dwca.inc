@@ -4,7 +4,7 @@
   
   DwCLibrary was build to open and query dwc files used by the GBIF Network
 
-  by Aurelio Sanabria INBio (Costa Rica).
+  by Aurelio Sanabria @ INBio (Costa Rica).
   
   Was based on the following resources:
 
@@ -88,8 +88,6 @@ class DwCA{
     $core->ignore_header_lines = 1; # The line of headers
 
     // close the file \o/ 
-    //                 |
-    //                /\ 
     fclose($file);
 
     return $core;
