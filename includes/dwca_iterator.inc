@@ -93,6 +93,7 @@ class DwCAIterator implements Iterator {
 
   private function __parseItems(ParserCSV $parser, $iterator,  $chunk_size = 50, $defaults = Array()) {
 
+    $parser->setStartByte($iterator->currentPos());
     $parser->setLineLimit($chunk_size);
     $rows = $parser->parse($iterator, $defaults);
 
@@ -108,21 +109,32 @@ class DwCAIterator implements Iterator {
 
   public function next($chunk_size = 50) {
 
-    $new_record = new DWCARecord();
 
     $core_rows = $this->__parseItems($this->core_parser, $this->core_iterator, $chunk_size);
     
     // TODO: store current Line
     $this->status = $this->core_iterator->currentPos();
 
-    $new_record->data['core'] = $core_rows; 
 
+    $rows = array();
     $row = array();
 
     foreach ($core_rows as $core_row){
 
+      $new_record = new DWCARecord();
+      $new_record->data['core'] = $core_row; 
+
+      $old1 = 0;
+      $old2 = 0;
+
       foreach ( array_keys($this->parsers) as $key ){
+
         do{
+
+          $iter_pos = $this->iterators[$key]->currentPos();
+          $old1 = $old2;
+          $old2 = $iter_pos;
+         
           $row = $this->__parseItems($this->parsers[$key], $this->iterators[$key], 1);
 
           if ( empty($row) || empty($core_row) ){
@@ -130,23 +142,17 @@ class DwCAIterator implements Iterator {
           }
 
           if( $row[0]['coreid'] === $core_row['id'] ){
-
             $new_record->data[$key][] = $row; 
-
           }else{
+            $this->iterators[$key]->rewind($old1);
             break;
           }
         }while(true);
       }
+      $rows[] = $new_record;
     }
 
-
-    if(empty($new_record->data['core'])){ 
-      $this->current = NULL;
-    }else{
-      $this->current = $new_record;
-    }
-
+    $this->current = $rows;
   }
 
   public function valid() {

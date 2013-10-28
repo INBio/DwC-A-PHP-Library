@@ -64,7 +64,17 @@ function test_full_records($file){
     print $ex;
   }
 
-  var_dump($rows);
+  print "# ------------ # \n";
+  var_dump($rows[0]->data['core']['id']);
+  var_dump($rows[0]->data['http://rs.gbif.org/terms/1.0/Image']);
+
+  print "# ------------ # \n";
+  var_dump($rows[1]->data['core']['id']);
+  var_dump($rows[1]->data['http://rs.gbif.org/terms/1.0/Image']);
+
+  print "# ------------ # \n";
+  var_dump($rows[2]->data['core']['id']);
+  var_dump($rows[2]->data['http://rs.gbif.org/terms/1.0/Image']);
 
   test_result('Test full records', count($rows) === 3, "Only ".count($rows)." founded!" );
 }

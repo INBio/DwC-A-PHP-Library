@@ -19,18 +19,18 @@ function test_full_records($file){
     $iterator = new DWCAIterator($dwca->meta);
     
     $rows = $dwca->get_full_records($iterator, 10);
-    $first_id = $rows->data['core'][0]['id'];
-    print $rows->data['core'][0]['id']."\n";
+    $first_id = $rows[0]->data['core']['id'];
+    print $rows[0]->data['core']['id']."\n";
     test_result('Test full records 1 iter', $first_id === "331985567");
 
     $rows = $dwca->get_full_records($iterator, 10);
-    $first_id = $rows->data['core'][0]['id'];
-    print $rows->data['core'][0]['id']."\n";
+    $first_id = $rows[0]->data['core']['id'];
+    print $rows[0]->data['core']['id']."\n";
     test_result('Test full records 2 iter', $first_id === "277158154");
 
     $rows = $dwca->get_full_records($iterator, 10);
-    $first_id = $rows->data['core'][0]['id'];
-    print $rows->data['core'][0]['id']."\n";
+    $first_id = $rows[0]->data['core']['id'];
+    print $rows[0]->data['core']['id']."\n";
     test_result('Test full records 3 iter', $first_id === "277221038");
 
   }catch (Exception $ex){

@@ -244,7 +244,7 @@ class ParserCSV {
       }
     }
 
-    $this->startByte = $lineIterator->currentPos();
+    //$this->startByte = $lineIterator->currentPos();
 
     return $rows;
   }
