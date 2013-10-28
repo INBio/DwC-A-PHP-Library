@@ -42,14 +42,16 @@ function test_get_records($file ){
   try{
     $dwca = new DwCA($file);
     $dwca->open();
-    $rows = $dwca->get_records(0, 50);
+    $rows = $dwca->get_records(50);
 
   }catch (Exception $ex){
     $rows = FALSE;
     print $ex;
   }
-
-  test_result("Test get records from archive file [$file]", (count($rows) == 50));
+  
+  test_result("Test get records from archive file [$file]", 
+    (count($rows) == 50),
+    "Only ".count($rows)." founded!");
 }
 
 

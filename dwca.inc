@@ -103,7 +103,7 @@ class DwCA{
   /**
    * Return the records from the core file only whitout the extensions
    */
-  public function get_records($start = 0, $limit = 50){
+  public function get_records($limit = 50){
 
     //always choose the first file of the list of locations.
     $file = $this->meta->core;
@@ -120,7 +120,7 @@ class DwCA{
 
     // parsing occurrence.txt file looking for occurrences
     $iterator = new ParserCSVIterator($filename);
-    $rows = $this->_parseItems($parser, $iterator, $start, $limit, array());
+    $rows = $this->_parseItems($parser, $iterator, $limit, array());
 
     return $rows;
   }
@@ -184,10 +184,9 @@ class DwCA{
    * @return
    *   An array of rows of the CSV keyed by the column names previously set
    */
-  private function _parseItems(ParserCSV $parser, ParserCSVIterator $iterator, $start = 0, $limit = 0, $defaults = Array()) {
+  private function _parseItems(ParserCSV $parser, ParserCSVIterator $iterator,  $limit = 0, $defaults = Array()) {
 
     $parser->setLineLimit($limit);
-    $parser->setStartByte($start);
     $rows = $parser->parse($iterator, $defaults);
     return $rows;
   }
