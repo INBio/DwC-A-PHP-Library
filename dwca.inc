@@ -128,7 +128,7 @@ class DwCA{
   /**
    * Return the records from the core file only
    */
-  public function get_full_records($start = 0, $limit = 50){
+  public function get_full_records($iterator, $chunk_size = 50){
 
     //always choose the first file of the list of locations.
     $file = $this->meta->core;
@@ -139,20 +139,9 @@ class DwCA{
     }
 
     $rows = Array();
-    $row = NULL;
 
-    // parsing occurrence.txt file looking for occurrences
-    $iterator = new DWCAIterator($this->meta);
-    for ( $i = 0; $i < $limit ; $i++ ){
-      $iterator->next();
-      $row = $iterator->current();
-
-      if (empty($row)){
-        break;
-      }else{
-        $rows[] = $iterator->current();
-      }
-    }
+    $iterator->next($chunk_size);
+    $rows = $iterator->current();
 
     return $rows;
   }

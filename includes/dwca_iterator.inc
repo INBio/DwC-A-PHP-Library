@@ -36,16 +36,17 @@ class DWCARecord{
  */
 class DwCAIterator implements Iterator {
 
-  private $meta;
+  public $meta;
 
-  private $core_parser;
-  private $core_iterator;
-  private $parsers;
-  private $iterators;
+  public $core_parser;
+  public $core_iterator;
 
-  private $status;
+  public $parsers;
+  public $iterators;
 
-  private $current;
+  public $status;
+
+  public $current;
 
 
   public function __construct($meta) {
@@ -59,14 +60,13 @@ class DwCAIterator implements Iterator {
     $this->core_iterator = $utils[1];
 
     $extensions = $meta->extensions;
-    $status['core'] = 0;
+    $status = 0;
 
     foreach($extensions as $ext){
       $utils = $this->__create_parser_and_iterator($ext);
 
       $parsers[$ext->row_type] = $utils[0];
       $iterators[$ext->row_type] = $utils[1];
-      $status[$ext->row_type] = 0; 
     }
 
     $this->status = $status;
@@ -85,62 +85,70 @@ class DwCAIterator implements Iterator {
     $parser->setDelimiter($archive->fields_terminated_by);
     $parser->setColumnNames(array_values($archive->fields));
 
-#    var_dump($archive);
     // parsing occurrence.txt file looking for occurrences
     $iterator = new ParserCSVIterator($archive->files[0]);
 
     return Array($parser, $iterator);
   }
 
-  private function __parseItems(ParserCSV $parser, $iterator, $start = 0, $limit = 0, $defaults = Array()) {
-    $parser->setLineLimit($limit);
-    $parser->setStartByte($start);
+  private function __parseItems(ParserCSV $parser, $iterator,  $chunk_size = 50, $defaults = Array()) {
+
+    print $parser->startByte. ' '. $parser->lineLimit . ' ' . $parser->lastLinePos. "\n";
+    $parser->setLineLimit($chunk_size);
     $rows = $parser->parse($iterator, $defaults);
+
     return $rows;
   }
 
+  /**
+   * Return all the files to the start (Re-initialize all the variables).
+   */
   public function rewind($pos = 0) {
     $this->__construct($this->meta);
   }
 
-  public function next() {
+  public function next($chunk_size = 50) {
 
     $new_record = new DWCARecord();
 
+    $core_rows = $this->__parseItems($this->core_parser, $this->core_iterator, $chunk_size);
+    print "core_rows: ".count($core_rows)."\n";
+    
+    // TODO: store current Line
+    $this->status = $this->core_iterator->currentPos();
 
-    $first_core_row = $this->__parseItems($this->core_parser, $this->core_iterator, $this->status['core'], 1);
-    $this->status['core'] = $this->core_iterator->currentPos();
-
-
-    $new_record->data['core'] = $first_core_row; 
+    $new_record->data['core'] = $core_rows; 
 
     $row = array();
 
-    foreach ( array_keys($this->parsers) as $key ){
+    foreach ($core_rows as $core_row){
 
-      do{
-        $row = $this->__parseItems($this->parsers[$key], $this->iterators[$key], $this->status[$key], 1);
+      foreach ( array_keys($this->parsers) as $key ){
+        do{
+          $row = $this->__parseItems($this->parsers[$key], $this->iterators[$key], 1);
 
-        if ( empty($row) || empty($first_core_row) ){
-          break;
-        }
+          if ( empty($row) || empty($core_row) ){
+            break;
+          }
 
-        if( $row[0]['coreid'] === $first_core_row[0]['id'] ){
+          if( $row[0]['coreid'] === $first_core_row[0]['id'] ){
 
-          $new_record->data[$key][] = $row; 
-          $this->status[$key] = $this->iterators[$key]->currentPos();
+            $new_record->data[$key][] = $row; 
 
-        }else{
-          break;
-        }
-      }while(true);
+          }else{
+            break;
+          }
+        }while(true);
+      }
     }
+
 
     if(empty($new_record->data['core'])){ 
       $this->current = NULL;
     }else{
       $this->current = $new_record;
     }
+
   }
 
   public function valid() {
