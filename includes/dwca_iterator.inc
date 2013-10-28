@@ -93,7 +93,6 @@ class DwCAIterator implements Iterator {
 
   private function __parseItems(ParserCSV $parser, $iterator,  $chunk_size = 50, $defaults = Array()) {
 
-    print $parser->startByte. ' '. $parser->lineLimit . ' ' . $parser->lastLinePos. "\n";
     $parser->setLineLimit($chunk_size);
     $rows = $parser->parse($iterator, $defaults);
 
@@ -112,7 +111,6 @@ class DwCAIterator implements Iterator {
     $new_record = new DWCARecord();
 
     $core_rows = $this->__parseItems($this->core_parser, $this->core_iterator, $chunk_size);
-    print "core_rows: ".count($core_rows)."\n";
     
     // TODO: store current Line
     $this->status = $this->core_iterator->currentPos();
@@ -131,7 +129,7 @@ class DwCAIterator implements Iterator {
             break;
           }
 
-          if( $row[0]['coreid'] === $first_core_row[0]['id'] ){
+          if( $row[0]['coreid'] === $core_row['id'] ){
 
             $new_record->data[$key][] = $row; 
 

@@ -49,20 +49,24 @@ function test_full_records($file){
 
   $rows = Array();
 
+
   try{
     $dwca = new DwCA($file);
     $dwca->open();
+
+    // parsing occurrence.txt file looking for occurrences
+    $iterator = new DWCAIterator($dwca->meta);
     
-    $rows = $dwca->get_full_records(0, 10);
+    $rows = $dwca->get_full_records($iterator, 10);
 
   }catch (Exception $ex){
     $rows = FALSE;
     print $ex;
   }
 
-  print "Counting rows: ".count($rows)."\n";
+  var_dump($rows);
 
-  test_result('Test full records', count($rows) === 3 );
+  test_result('Test full records', count($rows) === 3, "Only ".count($rows)." founded!" );
 }
 
 
