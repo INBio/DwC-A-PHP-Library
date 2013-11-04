@@ -62,6 +62,9 @@ class DwCA{
   private $dir;
   private $zip;
 
+  public $parser;
+  public $iterator;
+
   /**
    * Open the core file with the headers in case the dwca file is just a 
    * single csv file with headers.
@@ -113,13 +116,10 @@ class DwCA{
       throw new Exception("$filename: not found. Problably due to an error while unziping the dwca file");
     }
 
-    // Create and config the parser
-    $parser = new ParserCSV();
-    $parser->setDelimiter($file->fields_terminated_by);
-    $parser->setColumnNames(array_values($file->fields));
+     // Create and config the parser
+    $parser = $this->parser;
+    $iterator = $this->iterator;
 
-    // parsing occurrence.txt file looking for occurrences
-    $iterator = new ParserCSVIterator($filename);
     $rows = $this->_parseItems($parser, $iterator, $limit, array());
 
     return $rows;
@@ -517,6 +517,17 @@ class DwCA{
         print "something went terribly wrong, verify your imput file and try again";
         break;
     }
+
+    $filename = $core->files[0];
+
+    // parsing occurrence.txt file looking for occurrences
+    $iterator = new ParserCSVIterator($filename);
+    $this->iterator = $iterator;
+
+    $parser = new ParserCSV();
+    $parser->setDelimiter($core->fields_terminated_by);
+    $parser->setColumnNames(array_values($core->fields));
+    $this->parser = $parser;
 
 
     $archive->extensions = $extensions;
