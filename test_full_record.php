@@ -12,7 +12,7 @@ function test_get_records($file ){
   try{
     $dwca = new DwCA($file);
     $dwca->open();
-    $rows = $dwca->get_records(0, 50);
+    $rows = $dwca->get_records(50);
 
   }catch (Exception $ex){
     $rows = FALSE;
@@ -49,41 +49,40 @@ function test_full_records($file){
 
   $rows = Array();
 
+
   try{
     $dwca = new DwCA($file);
     $dwca->open();
+
+    // parsing occurrence.txt file looking for occurrences
+    $iterator = new DWCAIterator($dwca->meta);
     
-    $rows = $dwca->get_full_records(0, 10);
+    $rows = $dwca->get_full_records($iterator, 10);
 
   }catch (Exception $ex){
     $rows = FALSE;
     print $ex;
   }
 
-  print "Counting rows: ".count($rows)."\n";
-
-  test_result('Test full records', count($rows) === 10 );
+  test_result('Test full records', count($rows) === 3, "Only ".count($rows)." founded!" );
 }
 
+/** 
+ * Format of the test array
+ *
 
-$dir = 'examples';
-$dh = opendir($dir);
+  $tests = Array(
+    Array( $function, $file, $result), 
+  );
 
-$functions = Array('test_full_records');
-#$functions = Array('test_get_records', 'test_list_extensions');
-
-#test_full_records('examples/eol.zip');
-#test_full_records('examples/plic-4-images.zip');
-test_full_records('examples/plic-3-registers-8-images.zip');
-
-/*
-  while (false !== ($file = readdir($dh))) {
-    if (is_file($dir.'/'.$file) && $file != "." && $file != "..") {
-      foreach ($functions as $func) {
-        call_user_func($func, $dir.'/'.$file);
-      }
-    }
-  }
 */
+
+$tests = Array(
+  Array('test_full_records', 'plic-3-registers-8-images.zip', 3),
+  Array('test_list_extensions', 'plic-3-registers-8-images.zip', 1),
+  Array('test_get_records', 'gbiffolder.zip', 50),
+);
+
+run_tests('examples', $tests);
 
 ?>

@@ -71,9 +71,9 @@ class ParserCSV {
   private $timeout;
   private $timeoutReached;
 
-  private $startByte;
-  private $lineLimit;
-  private $lastLinePos;
+  public $startByte;
+  public $lineLimit;
+  public $lastLinePos;
 
   public function __construct() {
     $this->delimiter = ',';
@@ -243,6 +243,8 @@ class ParserCSV {
         break;
       }
     }
+
+    //$this->startByte = $lineIterator->currentPos();
 
     return $rows;
   }

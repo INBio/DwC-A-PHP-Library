@@ -6,10 +6,10 @@ include_once('dwca.inc');
 ini_set('display_errors', 1);
 ini_set('error_reporting', E_ALL);
 
-function test_open_dwca_file(){
+function test_open_dwca_file($file){
 
   try{
-    $dwca = new DwCA('examples/eol.zip');
+    $dwca = new DwCA($file);
   }catch (Exception $ex){
     $dwca = FALSE;
     print $ex;
@@ -18,12 +18,11 @@ function test_open_dwca_file(){
   test_result('Open DwC-A file', ($dwca != FALSE));
 }
 
-
-function test_open(){
+function test_open($file){
   $core = FALSE;
 
   try{
-    $dwca = new DwCA('examples/benin.zip');
+    $dwca = new DwCA($file);
     $dwca->open();
 
     $core = $dwca->meta->core;
@@ -42,22 +41,23 @@ function test_get_records($file ){
   try{
     $dwca = new DwCA($file);
     $dwca->open();
-    $rows = $dwca->get_records(0, 50);
+    $rows = $dwca->get_records(50);
 
   }catch (Exception $ex){
     $rows = FALSE;
     print $ex;
   }
-
-  test_result("Test get records from archive file [$file]", (count($rows) == 50));
+  
+  test_result("Test get records from archive file [$file]", 
+    (count($rows) == 50),
+    "Only ".count($rows)." founded!");
 }
 
-
-function test_get_extensions(){
+function test_get_extensions($file){
 
   $extensions = FALSE;
   try{
-    $dwca = new DwCA('examples/eol.zip');
+    $dwca = new DwCA($file);
     $dwca->open();
     $extensions = $dwca->meta->extensions;
 
@@ -79,9 +79,22 @@ while (false !== ($file = readdir($dh))) {
   }
 }
 
-  #test_open_dwca_file();
-  #test_open();
-  #test_get_records($file);
-  #test_get_extensions();
+/** 
+ * Format of the test array
+ *
 
+  $tests = Array(
+    Array( $function, $file, $result), 
+  );
+
+*/
+
+$tests = Array(
+  Array('test_get_extensions', 'examples/eol.zip', 4),
+  Array('test_get_records', 'examples/benin.zip', 50),
+  Array('test_get_records', 'examples/benin.zip', 'occurrence.txt'),
+  Array('test_open_dwca_file', 'examples/eol.zip', TRUE),
+);
+
+run_tests('examples', $tests);
 ?>

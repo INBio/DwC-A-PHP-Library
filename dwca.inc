@@ -4,7 +4,7 @@
   
   DwCLibrary was build to open and query dwc files used by the GBIF Network
 
-  by Aurelio Sanabria INBio (Costa Rica).
+  by Aurelio Sanabria @ INBio (Costa Rica).
   
   Was based on the following resources:
 
@@ -34,7 +34,10 @@
 
 
 // DWC realted
+// meta.xml related
 include_once('includes/meta.inc');
+
+// GBIF Metadata Profile objects
 include_once('includes/gmp.inc');
 
 // Utils
@@ -59,6 +62,13 @@ class DwCA{
   private $dir;
   private $zip;
 
+  public $parser;
+  public $iterator;
+
+  /**
+   * Open the core file with the headers in case the dwca file is just a 
+   * single csv file with headers.
+   */
   private function __open_core_with_headers(){
 
     $core = new Core();
@@ -88,17 +98,15 @@ class DwCA{
     $core->ignore_header_lines = 1; # The line of headers
 
     // close the file \o/ 
-    //                 |
-    //                /\ 
     fclose($file);
 
     return $core;
   }
 
   /**
-   * Return the records from the core file only
+   * Return the records from the core file only whitout the extensions
    */
-  public function get_records($start = 0, $limit = 50){
+  public function get_records($limit = 50){
 
     //always choose the first file of the list of locations.
     $file = $this->meta->core;
@@ -108,14 +116,11 @@ class DwCA{
       throw new Exception("$filename: not found. Problably due to an error while unziping the dwca file");
     }
 
-    // Create and config the parser
-    $parser = new ParserCSV();
-    $parser->setDelimiter($file->fields_terminated_by);
-    $parser->setColumnNames(array_values($file->fields));
+     // Create and config the parser
+    $parser = $this->parser;
+    $iterator = $this->iterator;
 
-    // parsing occurrence.txt file looking for occurrences
-    $iterator = new ParserCSVIterator($filename);
-    $rows = $this->_parseItems($parser, $iterator, $start, $limit, array());
+    $rows = $this->_parseItems($parser, $iterator, $limit, array());
 
     return $rows;
   }
@@ -123,7 +128,7 @@ class DwCA{
   /**
    * Return the records from the core file only
    */
-  public function get_full_records($start = 0, $limit = 50){
+  public function get_full_records($iterator, $chunk_size = 50){
 
     //always choose the first file of the list of locations.
     $file = $this->meta->core;
@@ -134,20 +139,9 @@ class DwCA{
     }
 
     $rows = Array();
-    $row = NULL;
 
-    // parsing occurrence.txt file looking for occurrences
-    $iterator = new DWCAIterator($this->meta);
-    for ( $i = 0; $i < $limit ; $i++ ){
-      $iterator->next();
-      $row = $iterator->current();
-
-      if (empty($row)){
-        break;
-      }else{
-        $rows[] = $iterator->current();
-      }
-    }
+    $iterator->next($chunk_size);
+    $rows = $iterator->current();
 
     return $rows;
   }
@@ -190,10 +184,9 @@ class DwCA{
    * @return
    *   An array of rows of the CSV keyed by the column names previously set
    */
-  private function _parseItems(ParserCSV $parser, ParserCSVIterator $iterator, $start = 0, $limit = 0, $defaults = Array()) {
+  private function _parseItems(ParserCSV $parser, ParserCSVIterator $iterator,  $limit = 0, $defaults = Array()) {
 
     $parser->setLineLimit($limit);
-    $parser->setStartByte($start);
     $rows = $parser->parse($iterator, $defaults);
     return $rows;
   }
@@ -396,7 +389,6 @@ class DwCA{
 
   /**
     Case 1:
-
     A metafile is not required if there is a single core data file where the first
     line provides the names of the Darwin Core terms represented in
     the published data. The column labels must exactly match the
@@ -485,6 +477,10 @@ class DwCA{
     return $seems_valid;
   }
 
+  /**
+   * Open the DwC-A and validate it depending in the Cases specified by the DwC-A
+   * specification
+   */
   public function open(){
 
     if( !$this->validate() ){
@@ -521,6 +517,17 @@ class DwCA{
         print "something went terribly wrong, verify your imput file and try again";
         break;
     }
+
+    $filename = $core->files[0];
+
+    // parsing occurrence.txt file looking for occurrences
+    $iterator = new ParserCSVIterator($filename);
+    $this->iterator = $iterator;
+
+    $parser = new ParserCSV();
+    $parser->setDelimiter($core->fields_terminated_by);
+    $parser->setColumnNames(array_values($core->fields));
+    $this->parser = $parser;
 
 
     $archive->extensions = $extensions;
